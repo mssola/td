@@ -7,7 +7,6 @@ package lib
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -37,6 +36,8 @@ var (
 	config *configuration
 )
 
+// TODO: don't panic
+
 func configFile() (string, error) {
 	home := os.Getenv("HOME")
 	if home == "" {
@@ -52,17 +53,17 @@ func configFile() (string, error) {
 	if _, err := os.Stat(cfg); os.IsNotExist(err) {
 		dir := filepath.Dir(cfg)
 		if err := os.MkdirAll(dir, 0755); err != nil {
-			return "", errors.New("config file could not be read!")
+			return "", newError("config file could not be read")
 		}
 
 		// Create the config file.
 		file, err := os.Create(cfg)
 		defer file.Close()
 		if err != nil {
-			return "", errors.New("config file could not be read!")
+			return "", newError("config file could not be read")
 		}
 	} else if err != nil {
-		return "", errors.New("config file could not be read!")
+		return "", newError("config file could not be read")
 	}
 	return cfg, nil
 }
@@ -87,15 +88,15 @@ func performLogin() error {
 	reader := bytes.NewReader(body)
 	res, err := http.Post(url, "application/json", reader)
 	if err != nil {
-		return errors.New("Could not log user in!")
+		return newError("could not log user in")
 	}
 
 	all, _ := ioutil.ReadAll(res.Body)
 	if err := json.Unmarshal(all, &config); err != nil {
-		return errors.New("Could not log user in!")
+		return newError("could not log user in")
 	}
 	if config.Token == "" {
-		return errors.New("Could not log user in!")
+		return newError("could not log user in")
 	}
 	return nil
 }
@@ -106,12 +107,12 @@ func LoggedIn() bool {
 		return false
 	}
 
-	contents, err := ioutil.ReadFile(filePath)
-	if err != nil {
+	contents, e := ioutil.ReadFile(filePath)
+	if e != nil {
 		return false
 	}
 
-	if err := json.Unmarshal(contents, &config); err != nil {
+	if e = json.Unmarshal(contents, &config); e != nil {
 		return false
 	}
 	return config.Token != ""
@@ -119,7 +120,7 @@ func LoggedIn() bool {
 
 func Login() error {
 	if LoggedIn() {
-		return errors.New("you are already logged in.\nTry: `td logout`")
+		return see("you are already logged in", "logout")
 	}
 
 	// Get the initial values for the request.
@@ -136,7 +137,7 @@ func Login() error {
 	defer f.Close()
 	if _, err := f.Write(body); err != nil {
 		fmt.Printf("FAIL\n")
-		return errors.New("could not save the config!")
+		return newError("could not save the config!")
 	}
 	fmt.Printf("OK\n")
 	return nil
@@ -150,5 +151,5 @@ func Logout() error {
 
 	// Remove the `.td` directory and everything inside of it.
 	cfg := filepath.Join(home, dirName)
-	return os.RemoveAll(cfg)
+	return fromError(os.RemoveAll(cfg))
 }

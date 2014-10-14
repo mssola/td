@@ -59,7 +59,7 @@ func cmd(err error) {
 	if err == nil {
 		os.Exit(0)
 	}
-	fmt.Printf("Error: %v\n", err)
+	fmt.Print(err)
 	os.Exit(1)
 }
 

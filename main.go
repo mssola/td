@@ -5,7 +5,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -80,7 +79,7 @@ func main() {
 
 	// All the other commands require the user to be logged in.
 	if !lib.LoggedIn() {
-		cmd(errors.New("you are not logged in.\nTry: `td login`"))
+		cmd(lib.See("you are not logged in", "login"))
 	}
 
 	// Let's execute the given command now.

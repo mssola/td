@@ -36,12 +36,10 @@ var (
 	config *configuration
 )
 
-// TODO: don't panic
-
 func configFile() (string, error) {
 	home := os.Getenv("HOME")
 	if home == "" {
-		panic("You don't have the $HOME environment variable set!")
+		return "", newError("you don't have the $HOME environment variable set")
 	}
 
 	// Every single command will reach this point eventually, so it's safe to
@@ -120,7 +118,7 @@ func LoggedIn() bool {
 
 func Login() error {
 	if LoggedIn() {
-		return see("you are already logged in", "logout")
+		return See("you are already logged in", "logout")
 	}
 
 	// Get the initial values for the request.
@@ -146,7 +144,7 @@ func Login() error {
 func Logout() error {
 	home := os.Getenv("HOME")
 	if home == "" {
-		panic("You don't have the $HOME environment variable set!")
+		return newError("you don't have the $HOME environment variable set")
 	}
 
 	// Remove the `.td` directory and everything inside of it.

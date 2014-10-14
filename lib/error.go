@@ -21,7 +21,7 @@ func newError(message string) *Error {
 }
 
 // Build a new error from the given messages.
-func see(message, see string) *Error {
+func See(message, see string) *Error {
 	return &Error{
 		message: message,
 		see:     see,
@@ -30,6 +30,9 @@ func see(message, see string) *Error {
 
 // Build a new custom error from the given standard error.
 func fromError(err error) *Error {
+	if err == nil {
+		return nil
+	}
 	return newError(err.Error())
 }
 

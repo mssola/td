@@ -11,6 +11,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -69,6 +71,13 @@ func Fetch() error {
 }
 
 func List() error {
+	adir := filepath.Join(home(), dirName, newDir)
+	entries, _ := ioutil.ReadDir(adir)
+	for _, entry := range entries {
+		parts := strings.SplitN(entry.Name(), "_", 2)
+		name := strings.SplitN(parts[1], ".", 2)
+		fmt.Printf("%v\n", name[0])
+	}
 	return nil
 }
 

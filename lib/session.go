@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/howeyc/gopass"
 )
@@ -27,27 +26,17 @@ type configuration struct {
 	Token  string `json:"token"`
 }
 
-const (
-	dirName  = ".td"
-	fileName = ".config.json"
-)
-
 var (
 	config *configuration
 )
 
 func configFile() (string, error) {
-	home := os.Getenv("HOME")
-	if home == "" {
-		return "", newError("you don't have the $HOME environment variable set")
-	}
-
 	// Every single command will reach this point eventually, so it's safe to
 	// initialize the configuration here.
 	config = &configuration{}
 
 	// Create the config file if it doesn't exist yet.
-	cfg := filepath.Join(home, dirName, fileName)
+	cfg := filepath.Join(home(), dirName, fileName)
 	if _, err := os.Stat(cfg); os.IsNotExist(err) {
 		dir := filepath.Dir(cfg)
 		if err := os.MkdirAll(dir, 0755); err != nil {
@@ -76,12 +65,7 @@ func performLogin() error {
 	fmt.Print("Password: ")
 	r.Password = string(gopass.GetPasswdMasked())
 
-	url := config.Server
-	if !strings.HasSuffix(url, "/") {
-		url += "/"
-	}
-	url += "login"
-
+	url := requestUrl("/login", false)
 	body, _ := json.Marshal(r)
 	reader := bytes.NewReader(body)
 	res, err := http.Post(url, "application/json", reader)
@@ -138,16 +122,13 @@ func Login() error {
 		return newError("could not save the config!")
 	}
 	fmt.Printf("OK\n")
+	fmt.Printf("Fetching topics...\n")
+	Fetch()
 	return nil
 }
 
 func Logout() error {
-	home := os.Getenv("HOME")
-	if home == "" {
-		return newError("you don't have the $HOME environment variable set")
-	}
-
 	// Remove the `.td` directory and everything inside of it.
-	cfg := filepath.Join(home, dirName)
+	cfg := filepath.Join(home(), dirName)
 	return fromError(os.RemoveAll(cfg))
 }

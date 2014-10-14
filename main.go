@@ -45,6 +45,11 @@ func usage() {
 
 // Show a rather verbose help message, with command suggestions.
 func verboseHelp() {
+	// No command given, just get out of here.
+	if len(os.Args) == 1 {
+		cmd(lib.See("you are not logged in", "login"))
+	}
+
 	e := fmt.Sprintf("'%v' is not a td command", os.Args[1])
 	msg := lib.See(e, "--help")
 

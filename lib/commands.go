@@ -4,13 +4,67 @@
 
 package lib
 
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"time"
+)
+
+type Topic struct {
+	Id         string    `json:"id"`
+	Name       string    `json:"name"`
+	Contents   string    `json:"contents"`
+	Created_at time.Time `json:"created_at"`
+	Markdown   string    `json:"markdown"`
+}
+
 // TODO
+func requestUrl(path string, token bool) string {
+	u, _ := url.Parse(config.Server)
+	u.Path = path
+	if token {
+		v := url.Values{}
+		v.Set("token", config.Token)
+		u.RawQuery = v.Encode()
+	}
+	return u.String()
+}
+
+func getResponse(method, url string, body io.Reader) (*http.Response, error) {
+	client := &http.Client{}
+	str := requestUrl(url, true)
+	req, _ := http.NewRequest(method, str, body)
+	req.Header.Set("Content-Type", "application/json")
+	return client.Do(req)
+}
 
 func Edit() error {
 	return nil
 }
 
 func Fetch() error {
+	// Perform the HTTP request.
+	res, err := getResponse("GET", "/topics", nil)
+	if err != nil {
+		return fromError(err)
+	}
+
+	// Parse the given topics.
+	var topics []Topic
+	body, _ := ioutil.ReadAll(res.Body)
+	if err := json.Unmarshal(body, &topics); err != nil {
+		return fromError(err)
+	}
+
+	// And save the results.
+	if err := save(topics); err != nil {
+		return err
+	}
+	fmt.Printf("Topics updated.\n")
 	return nil
 }
 

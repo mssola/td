@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/mssola/dym"
 	"github.com/mssola/td/lib"
 )
 
@@ -24,7 +25,7 @@ const (
 )
 
 // Show the usage string. The parameter will be used as the exit status code.
-func usage(status int) {
+func usage() {
 	msg := []string{
 		"usage: td [--version | --help | <command>] [args]",
 		"",
@@ -39,7 +40,39 @@ func usage(status int) {
 			"the new one.",
 	}
 	fmt.Printf("%v\n", strings.Join(msg, "\n"))
-	os.Exit(status)
+	os.Exit(0)
+}
+
+// Show a rather verbose help message, with command suggestions.
+func verboseHelp() {
+	e := fmt.Sprintf("'%v' is not a td command", os.Args[1])
+	msg := lib.See(e, "--help")
+
+	// Get the commands that are close to the one given by the user.
+	d := []string{"login", "--help", "--version", "fetch", "list", "logout",
+		"push", "create", "delete", "rename"}
+	similars := dym.Similar(d, os.Args[1])
+
+	if len(similars) == 0 {
+		fmt.Printf("%v", msg)
+	} else {
+		str := fmt.Sprintf("%v\nDid you mean one of these?\n", msg)
+		for _, v := range similars {
+			// Check for an exact match for the given parameter. If there is a
+			// match, then it means that the error to be shown is that the user
+			// wasn't logged in.
+			if v == os.Args[1] {
+				cmd(lib.See("you are not logged in", "login"))
+			}
+
+			str += fmt.Sprintf("\t%v\n", v)
+		}
+		fmt.Print(str)
+	}
+
+	// If we reach this point, then there was no exact match, so it's safe to
+	// just quit the program.
+	os.Exit(1)
 }
 
 // Show the version of this program.
@@ -71,7 +104,7 @@ func main() {
 		case "login":
 			cmd(lib.Login())
 		case "--help":
-			usage(0)
+			usage()
 		case "--version":
 			version()
 		}
@@ -79,7 +112,7 @@ func main() {
 
 	// All the other commands require the user to be logged in.
 	if !lib.LoggedIn() {
-		cmd(lib.See("you are not logged in", "login"))
+		verboseHelp()
 	}
 
 	// Let's execute the given command now.
@@ -96,7 +129,7 @@ func main() {
 		case "push":
 			cmd(lib.Push())
 		default:
-			usage(1)
+			verboseHelp()
 		}
 	} else if largs == 3 {
 		if os.Args[1] == "create" {
@@ -104,11 +137,11 @@ func main() {
 		} else if os.Args[1] == "delete" {
 			cmd(lib.Delete(os.Args[2]))
 		} else {
-			usage(1)
+			verboseHelp()
 		}
 	} else if largs == 4 && os.Args[1] == "rename" {
 		cmd(lib.Rename(os.Args[2], os.Args[3]))
 	} else {
-		usage(1)
+		verboseHelp()
 	}
 }

@@ -12,11 +12,12 @@ import (
 )
 
 const (
-	dirName  = ".td"
-	fileName = ".config.json"
-	tmpDir   = "tmp"
-	oldDir   = "old"
-	newDir   = "new"
+	defaultEditor = "vi"
+	dirName       = ".td"
+	fileName      = ".config.json"
+	tmpDir        = "tmp"
+	oldDir        = "old"
+	newDir        = "new"
 )
 
 // TODO: establish a locking mechanism
@@ -28,6 +29,14 @@ func home() string {
 		if value == "" {
 			panic("You don't have the $HOME environment variable set")
 		}
+	}
+	return value
+}
+
+func editor() string {
+	value := os.Getenv("EDITOR")
+	if value == "" {
+		return defaultEditor
 	}
 	return value
 }
@@ -72,7 +81,7 @@ func save(topics []Topic) error {
 
 	// Save all the topics to this temporary directory.
 	for _, t := range topics {
-		path := filepath.Join(dir, t.Id+"_"+t.Name+".md")
+		path := filepath.Join(dir, t.Name+".md")
 		if err := write(&t, path); err != nil {
 			return err
 		}
@@ -87,6 +96,7 @@ func save(topics []Topic) error {
 	if err := copyDir(dir, adir); err != nil {
 		return fromError(err)
 	}
+
 	return nil
 }
 

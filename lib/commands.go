@@ -11,8 +11,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -45,7 +46,12 @@ func getResponse(method, url string, body io.Reader) (*http.Response, error) {
 }
 
 func Edit() error {
-	return nil
+	cmd := exec.Command(editor())
+	cmd.Dir = filepath.Join(home(), dirName, newDir)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 func Fetch() error {
@@ -74,9 +80,7 @@ func List() error {
 	adir := filepath.Join(home(), dirName, newDir)
 	entries, _ := ioutil.ReadDir(adir)
 	for _, entry := range entries {
-		parts := strings.SplitN(entry.Name(), "_", 2)
-		name := strings.SplitN(parts[1], ".", 2)
-		fmt.Printf("%v\n", name[0])
+		fmt.Printf("%v\n", entry.Name())
 	}
 	return nil
 }

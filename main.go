@@ -71,10 +71,10 @@ func main() {
 		switch os.Args[1] {
 		case "login":
 			cmd(lib.Login())
-		case "--version":
-			version()
 		case "--help":
 			usage(0)
+		case "--version":
+			version()
 		}
 	}
 

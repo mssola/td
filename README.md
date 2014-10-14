@@ -1,6 +1,6 @@
 # td [![Build Status](https://travis-ci.org/mssola/td.svg?branch=master)](https://travis-ci.org/mssola/td)
 
-This is a client for my [To Do](https://github.com/mssola/todo) service.
+This is a CLI application for my [To Do](https://github.com/mssola/todo) service.
 
 ## Usage
 

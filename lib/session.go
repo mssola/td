@@ -21,40 +21,6 @@ type request struct {
 	Password string `json:"password"`
 }
 
-type configuration struct {
-	Server string `json:"server"`
-	Token  string `json:"token"`
-}
-
-var (
-	config *configuration
-)
-
-func configFile() (string, error) {
-	// Every single command will reach this point eventually, so it's safe to
-	// initialize the configuration here.
-	config = &configuration{}
-
-	// Create the config file if it doesn't exist yet.
-	cfg := filepath.Join(home(), dirName, configName)
-	if _, err := os.Stat(cfg); os.IsNotExist(err) {
-		dir := filepath.Dir(cfg)
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			return "", newError("config file could not be read")
-		}
-
-		// Create the config file.
-		file, err := os.Create(cfg)
-		defer file.Close()
-		if err != nil {
-			return "", newError("config file could not be read")
-		}
-	} else if err != nil {
-		return "", newError("config file could not be read")
-	}
-	return cfg, nil
-}
-
 func performLogin() error {
 	var r request
 
@@ -84,20 +50,7 @@ func performLogin() error {
 }
 
 func LoggedIn() bool {
-	filePath, err := configFile()
-	if err != nil {
-		return false
-	}
-
-	contents, e := ioutil.ReadFile(filePath)
-	if e != nil {
-		return false
-	}
-
-	if e = json.Unmarshal(contents, &config); e != nil {
-		return false
-	}
-	return config.Token != ""
+	return config.logged
 }
 
 // TODO: it doesn't actually fetch after login :/

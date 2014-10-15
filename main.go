@@ -121,10 +121,9 @@ func cmd(err error) {
 	os.Exit(1)
 }
 
-// TODO: Perform some initial check on the FS and initialize things. This way
-// we can ignore the vast majority of errors.
 func main() {
 	largs := len(os.Args)
+	lib.Initialize()
 
 	// All the actions that a non-logged in user can perform.
 	if largs == 2 {

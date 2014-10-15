@@ -17,7 +17,6 @@ var (
 )
 
 const (
-	configName = "config.json"
 	topicsName = "topics.json"
 	tmpDir     = "tmp"
 	oldDir     = "old"

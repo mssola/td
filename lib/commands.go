@@ -141,6 +141,35 @@ func Create(name string) error {
 }
 
 func Delete(name string) error {
+	var topics, actual []Topic
+	var tid, tname string
+
+	// Get the list of topics straight.
+	getTopics(&topics)
+	for _, v := range topics {
+		if v.Name == name {
+			tid, tname = v.Id, v.Name
+		} else {
+			actual = append(actual, v)
+		}
+	}
+	if tid == "" {
+		// TODO: dym
+		return newError(fmt.Sprintf("the topic '%v' does not exist", name))
+	}
+
+	// Perform the HTTP request.
+	_, err := getResponse("DELETE", "/topics/"+tid, nil)
+	if err != nil {
+		return fromError(err)
+	}
+
+	// On the system.
+	writeJson(actual)
+	file := filepath.Join(home(), dirName, oldDir, tname+".md")
+	os.RemoveAll(file)
+	file = filepath.Join(home(), dirName, newDir, tname+".md")
+	os.RemoveAll(file)
 	return nil
 }
 

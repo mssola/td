@@ -82,6 +82,7 @@ func getTopics(topics *[]Topic) {
 	json.Unmarshal(body, topics)
 }
 
+// TODO: rename to writeTopics or something like that.
 func writeJson(topics []Topic) error {
 	// Clean it up, we don't want to store the contents.
 	for k, _ := range topics {

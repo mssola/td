@@ -89,6 +89,37 @@ func List() error {
 }
 
 func Push() error {
+	var success, fails []string
+	var topics []Topic
+	getTopics(&topics)
+
+	total := len(topics)
+	for k, v := range topics {
+		// Print the status.
+		fmt.Printf("\rPushing... %v/%v\r", k+1, total)
+
+		// Get the contents.
+		file := filepath.Join(home(), dirName, newDir, v.Name+".md")
+		body, _ := ioutil.ReadFile(file)
+		t := &Topic{Contents: string(body)}
+		if t.Contents == "" {
+			success = append(success, v.Name)
+			continue
+		}
+
+		// Perform the request.
+		body, _ = json.Marshal(t)
+		path := "/topics/" + v.Id
+		_, err := getResponse("PUT", path, bytes.NewReader(body))
+		if err == nil {
+			success = append(success, v.Name)
+		} else {
+			fails = append(fails, v.Name)
+		}
+	}
+
+	update(success, fails)
+	fmt.Printf("Success!\n")
 	return nil
 }
 

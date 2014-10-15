@@ -5,6 +5,7 @@
 package lib
 
 import (
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"os"
@@ -75,6 +76,35 @@ func copyDir(source string, dest string) error {
 	return nil
 }
 
+func getTopics(topics *[]Topic) {
+	file := filepath.Join(home(), dirName, topicsName)
+	body, _ := ioutil.ReadFile(file)
+	json.Unmarshal(body, topics)
+}
+
+func writeJson(topics []Topic) error {
+	// Clean it up, we don't want to store the contents.
+	for k, _ := range topics {
+		topics[k].Contents = ""
+		topics[k].Markdown = ""
+	}
+	body, _ := json.Marshal(topics)
+
+	// Write the JSON.
+	file := filepath.Join(home(), dirName, topicsName)
+	f, err := os.Create(file)
+	if err != nil {
+		return fromError(err)
+	}
+	f.Write(body)
+	f.Close()
+	return nil
+}
+
+func update(sucess, fails []string) {
+	// TODO
+}
+
 func save(topics []Topic) error {
 	// First of all, reset the temporary directory.
 	dir := filepath.Join(home(), dirName, tmpDir)
@@ -91,7 +121,7 @@ func save(topics []Topic) error {
 		}
 	}
 
-	// And update the old and new directories
+	// Update the old and new directories
 	adir := filepath.Join(home(), dirName, oldDir)
 	if err := copyDir(dir, adir); err != nil {
 		return fromError(err)
@@ -101,7 +131,8 @@ func save(topics []Topic) error {
 		return fromError(err)
 	}
 
-	return nil
+	// And finally, write the JSON file.
+	return writeJson(topics)
 }
 
 func write(topic *Topic, path string) error {
@@ -117,5 +148,6 @@ func write(topic *Topic, path string) error {
 }
 
 func addTopic(topic *Topic) error {
+	// TODO
 	return nil
 }

@@ -15,9 +15,9 @@ Do](https://github.com/mssola/todo) instance, the user name and its password.
 If we're successful, the user will get authenticated and its topics will be
 fetched automatically.
 
-We don't have to do this again, this user will be logged from now on. However,
-you might want to delete the current session. For this you can just use the
-`logout` command.
+We don't have to do this again, this user will be logged in from now on.
+However, you might want to delete the current session. For this you can
+just use the `logout` command.
 
 ### Commands
 
@@ -54,7 +54,8 @@ don't have to pass any parameter to the `td` executable. If you do that, then
 your preferred editor will be openned in the directory where all the topics are
 being stored. Your preferred editor is the one set in the `EDITOR` environment
 variable. If this environment variable is not set, then `vi` gets picked. Each
-topic as a file, and the name of the topic is the name of its file.
+topic is represented as a file, and the name of the topic is the name of its
+file.
 
 Note that you don't have to open the editor to know the topics that you have.
 You can just perform the `list` command for that.

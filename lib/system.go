@@ -11,10 +11,14 @@ import (
 	"path/filepath"
 )
 
+var (
+	dirName = ".td"
+)
+
 const (
 	defaultEditor = "vi"
-	dirName       = ".td"
-	fileName      = ".config.json"
+	configName    = "config.json"
+	topicsName    = "topics.json"
 	tmpDir        = "tmp"
 	oldDir        = "old"
 	newDir        = "new"

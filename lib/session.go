@@ -36,7 +36,7 @@ func configFile() (string, error) {
 	config = &configuration{}
 
 	// Create the config file if it doesn't exist yet.
-	cfg := filepath.Join(home(), dirName, fileName)
+	cfg := filepath.Join(home(), dirName, configName)
 	if _, err := os.Stat(cfg); os.IsNotExist(err) {
 		dir := filepath.Dir(cfg)
 		if err := os.MkdirAll(dir, 0755); err != nil {

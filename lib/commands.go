@@ -8,10 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -26,26 +23,6 @@ type Topic struct {
 	Contents   string    `json:"contents,omitempty"`
 	Created_at time.Time `json:"created_at,omitempty"`
 	Markdown   string    `json:"markdown,omitempty"`
-}
-
-// TODO
-func requestUrl(path string, token bool) string {
-	u, _ := url.Parse(config.Server)
-	u.Path = path
-	if token {
-		v := url.Values{}
-		v.Set("token", config.Token)
-		u.RawQuery = v.Encode()
-	}
-	return u.String()
-}
-
-func getResponse(method, url string, body io.Reader) (*http.Response, error) {
-	client := &http.Client{}
-	str := requestUrl(url, true)
-	req, _ := http.NewRequest(method, str, body)
-	req.Header.Set("Content-Type", "application/json")
-	return client.Do(req)
 }
 
 func unknownTopic(name string) {

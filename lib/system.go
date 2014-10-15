@@ -7,7 +7,6 @@ package lib
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -18,65 +17,15 @@ var (
 )
 
 const (
-	defaultEditor = "vi"
-	configName    = "config.json"
-	topicsName    = "topics.json"
-	tmpDir        = "tmp"
-	oldDir        = "old"
-	newDir        = "new"
+	configName = "config.json"
+	topicsName = "topics.json"
+	tmpDir     = "tmp"
+	oldDir     = "old"
+	newDir     = "new"
 )
 
 // TODO: maybe we can be less paranoid in regards to errors. This can be
 // accomplished by making sure on start that the filesystem in in order.
-
-func home() string {
-	value := os.Getenv("TD")
-	if value == "" {
-		value = os.Getenv("HOME")
-		if value == "" {
-			panic("You don't have the $HOME environment variable set")
-		}
-	}
-	return value
-}
-
-func editor() string {
-	value := os.Getenv("EDITOR")
-	if value == "" {
-		return defaultEditor
-	}
-	return value
-}
-
-// TODO
-func copyFile(source string, dest string) error {
-	sf, _ := os.Open(source)
-	defer sf.Close()
-	df, err := os.Create(dest)
-	if err != nil {
-		return err
-	}
-	defer df.Close()
-	_, err = io.Copy(df, sf)
-	return err
-}
-
-// TODO
-func copyDir(source string, dest string) error {
-	os.RemoveAll(dest)
-	os.MkdirAll(dest, 0755)
-
-	entries, err := ioutil.ReadDir(source)
-	for _, entry := range entries {
-		sfp := filepath.Join(source, entry.Name())
-		dfp := filepath.Join(dest, entry.Name())
-		err = copyFile(sfp, dfp)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 func readTopics(topics *[]Topic) {
 	file := filepath.Join(home(), dirName, topicsName)
@@ -99,28 +48,17 @@ func writeTopics(topics []Topic) {
 	f.Close()
 }
 
-func update(success, fails []string) {
-	srcDir := filepath.Join(home(), dirName, newDir)
-	dstDir := filepath.Join(home(), dirName, oldDir)
+func addTopic(topic *Topic) {
+	// Add the topic to the JSON file.
+	topics := []Topic{*topic}
+	readTopics(&topics)
+	writeTopics(topics)
 
-	// Copy successes.
-	for _, v := range success {
-		src := filepath.Join(srcDir, v+".md")
-		dst := filepath.Join(dstDir, v+".md")
-		if err := copyFile(src, dst); err != nil {
-			fails = append(fails, v)
-		}
-	}
-
-	// List failures.
-	if len(fails) == 0 {
-		fmt.Printf("Success!\n")
-	} else {
-		fmt.Printf("The following topics could not be pushed:\n")
-		for _, v := range fails {
-			fmt.Printf("\t" + v + "\n")
-		}
-	}
+	// And create the files for this new topic.
+	odir := filepath.Join(home(), dirName, oldDir)
+	write(topic, odir)
+	odir = filepath.Join(home(), dirName, newDir)
+	write(topic, odir)
 }
 
 func save(topics []Topic) error {
@@ -166,15 +104,26 @@ func write(topic *Topic, path string) error {
 	return nil
 }
 
-func addTopic(topic *Topic) {
-	// Add the topic to the JSON file.
-	topics := []Topic{*topic}
-	readTopics(&topics)
-	writeTopics(topics)
+func update(success, fails []string) {
+	srcDir := filepath.Join(home(), dirName, newDir)
+	dstDir := filepath.Join(home(), dirName, oldDir)
 
-	// And create the files for this new topic.
-	odir := filepath.Join(home(), dirName, oldDir)
-	write(topic, odir)
-	odir = filepath.Join(home(), dirName, newDir)
-	write(topic, odir)
+	// Copy successes.
+	for _, v := range success {
+		src := filepath.Join(srcDir, v+".md")
+		dst := filepath.Join(dstDir, v+".md")
+		if err := copyFile(src, dst); err != nil {
+			fails = append(fails, v)
+		}
+	}
+
+	// List failures.
+	if len(fails) == 0 {
+		fmt.Printf("Success!\n")
+	} else {
+		fmt.Printf("The following topics could not be pushed:\n")
+		for _, v := range fails {
+			fmt.Printf("\t" + v + "\n")
+		}
+	}
 }

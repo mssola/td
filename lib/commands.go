@@ -52,7 +52,7 @@ func unknownTopic(name string) {
 	var topics []Topic
 	var names []string
 
-	getTopics(&topics)
+	readTopics(&topics)
 	for _, v := range topics {
 		names = append(names, v.Name)
 	}
@@ -103,7 +103,7 @@ func Fetch() error {
 
 func List() error {
 	var topics []Topic
-	getTopics(&topics)
+	readTopics(&topics)
 	for _, v := range topics {
 		fmt.Printf("%v\n", v.Name)
 	}
@@ -113,7 +113,7 @@ func List() error {
 func Push() error {
 	var success, fails []string
 	var topics []Topic
-	getTopics(&topics)
+	readTopics(&topics)
 
 	total := len(topics)
 	for k, v := range topics {
@@ -140,8 +140,8 @@ func Push() error {
 		}
 	}
 
+	// And finally update the file system.
 	update(success, fails)
-	fmt.Printf("Success!\n")
 	return nil
 }
 
@@ -159,7 +159,8 @@ func Create(name string) error {
 	if err := json.Unmarshal(body, &t); err != nil {
 		return fromError(err)
 	}
-	return addTopic(t)
+	addTopic(t)
+	return nil
 }
 
 func Delete(name string) error {
@@ -167,7 +168,7 @@ func Delete(name string) error {
 	var id string
 
 	// Get the list of topics straight.
-	getTopics(&topics)
+	readTopics(&topics)
 	for _, v := range topics {
 		if v.Name == name {
 			id = v.Id
@@ -187,7 +188,7 @@ func Delete(name string) error {
 	}
 
 	// On the system.
-	writeJson(actual)
+	writeTopics(actual)
 	file := filepath.Join(home(), dirName, oldDir, name+".md")
 	os.RemoveAll(file)
 	file = filepath.Join(home(), dirName, newDir, name+".md")
@@ -199,7 +200,7 @@ func Rename(oldName, newName string) error {
 	var topics []Topic
 	var id, name string
 
-	getTopics(&topics)
+	readTopics(&topics)
 	for k, v := range topics {
 		if v.Name == oldName {
 			id = v.Id
@@ -220,7 +221,7 @@ func Rename(oldName, newName string) error {
 	}
 
 	// Update the system.
-	writeJson(topics)
+	writeTopics(topics)
 	file := filepath.Join(home(), dirName, oldDir)
 	os.Rename(filepath.Join(file, oldName), filepath.Join(file, newName))
 	file = filepath.Join(home(), dirName, newDir)

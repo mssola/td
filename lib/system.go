@@ -6,6 +6,7 @@ package lib
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -25,7 +26,8 @@ const (
 	newDir        = "new"
 )
 
-// TODO: establish a locking mechanism
+// TODO: maybe we can be less paranoid in regards to errors. This can be
+// accomplished by making sure on start that the filesystem in in order.
 
 func home() string {
 	value := os.Getenv("TD")
@@ -76,14 +78,13 @@ func copyDir(source string, dest string) error {
 	return nil
 }
 
-func getTopics(topics *[]Topic) {
+func readTopics(topics *[]Topic) {
 	file := filepath.Join(home(), dirName, topicsName)
 	body, _ := ioutil.ReadFile(file)
 	json.Unmarshal(body, topics)
 }
 
-// TODO: rename to writeTopics or something like that.
-func writeJson(topics []Topic) error {
+func writeTopics(topics []Topic) {
 	// Clean it up, we don't want to store the contents.
 	for k, _ := range topics {
 		topics[k].Contents = ""
@@ -93,17 +94,33 @@ func writeJson(topics []Topic) error {
 
 	// Write the JSON.
 	file := filepath.Join(home(), dirName, topicsName)
-	f, err := os.Create(file)
-	if err != nil {
-		return fromError(err)
-	}
+	f, _ := os.Create(file)
 	f.Write(body)
 	f.Close()
-	return nil
 }
 
-func update(sucess, fails []string) {
-	// TODO
+func update(success, fails []string) {
+	srcDir := filepath.Join(home(), dirName, newDir)
+	dstDir := filepath.Join(home(), dirName, oldDir)
+
+	// Copy successes.
+	for _, v := range success {
+		src := filepath.Join(srcDir, v+".md")
+		dst := filepath.Join(dstDir, v+".md")
+		if err := copyFile(src, dst); err != nil {
+			fails = append(fails, v)
+		}
+	}
+
+	// List failures.
+	if len(fails) == 0 {
+		fmt.Printf("Success!\n")
+	} else {
+		fmt.Printf("The following topics could not be pushed:\n")
+		for _, v := range fails {
+			fmt.Printf("\t" + v + "\n")
+		}
+	}
 }
 
 func save(topics []Topic) error {
@@ -116,8 +133,7 @@ func save(topics []Topic) error {
 
 	// Save all the topics to this temporary directory.
 	for _, t := range topics {
-		path := filepath.Join(dir, t.Name+".md")
-		if err := write(&t, path); err != nil {
+		if err := write(&t, dir); err != nil {
 			return err
 		}
 	}
@@ -133,10 +149,12 @@ func save(topics []Topic) error {
 	}
 
 	// And finally, write the JSON file.
-	return writeJson(topics)
+	writeTopics(topics)
+	return nil
 }
 
 func write(topic *Topic, path string) error {
+	path = filepath.Join(path, topic.Name+".md")
 	f, err := os.Create(path)
 	if err != nil {
 		return fromError(err)
@@ -148,7 +166,15 @@ func write(topic *Topic, path string) error {
 	return nil
 }
 
-func addTopic(topic *Topic) error {
-	// TODO
-	return nil
+func addTopic(topic *Topic) {
+	// Add the topic to the JSON file.
+	topics := []Topic{*topic}
+	readTopics(&topics)
+	writeTopics(topics)
+
+	// And create the files for this new topic.
+	odir := filepath.Join(home(), dirName, oldDir)
+	write(topic, odir)
+	odir = filepath.Join(home(), dirName, newDir)
+	write(topic, odir)
 }

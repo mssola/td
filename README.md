@@ -4,7 +4,60 @@ This is a CLI application for my [To Do](https://github.com/mssola/todo) service
 
 ## Usage
 
-Under construction.
+### Login & logout
+
+First of all, we have to login.
+
+    $ td login
+
+It will ask for the full URL of the server that is running our [To
+Do](https://github.com/mssola/todo) instance, the user name and its password.
+If we're successful, the user will get authenticated and its topics will be
+fetched automatically.
+
+We don't have to do this again, this user will be logged from now on. However,
+you might want to delete the current session. For this you can just use the
+`logout` command.
+
+### Commands
+
+In this section I'm assuming that you've already logged in. At this point there
+are a lot of things that can be done. You can see the full list of commands by
+executing the following command:
+
+    $ td --help
+
+The workflow for this application is as follows:
+
+1. Work locally. Edit the "To do" list, etc.
+2. Then push your changes to the server.
+
+First of all, let's see how we can interact with the server. There are
+basically two commands for this: `fetch` and `push`. The `fetch` command pulls
+everything from the server and saves it to our local setup. Note that currently
+this command will effectively wipe out the contents of our local setup. This is
+not a good thing, so I'll fix it as soon as possible. The `push` command will
+grab all our local editions and push it to the server.
+
+One can create and delete topics with the `create` and `delete` commands,
+respectively. Note that both commands expect the name of the topic to be
+created/deleted. Moreover, a topic can be renamed with the `rename` command.
+This command expects two parameters: the old and the new name, in this order.
+As an example:
+
+    $ td create test
+    $ td rename test another
+    $ td delete another
+
+The most important thing is to view the "To do" list and edit it. For this you
+don't have to pass any parameter to the `td` executable. If you do that, then
+your preferred editor will be openned in the directory where all the topics are
+being stored. Your preferred editor is the one set in the `EDITOR` environment
+variable. If this environment variable is not set, then `vi` gets picked. Each
+topic as a file, and the name of the topic is the name of its file.
+
+Note that you don't have to open the editor to know the topics that you have.
+You can just perform the `list` command for that.
 
 ## License
 

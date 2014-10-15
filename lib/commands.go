@@ -15,8 +15,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
+
+	"github.com/mssola/dym"
 )
 
 type Topic struct {
@@ -45,6 +46,28 @@ func getResponse(method, url string, body io.Reader) (*http.Response, error) {
 	req, _ := http.NewRequest(method, str, body)
 	req.Header.Set("Content-Type", "application/json")
 	return client.Do(req)
+}
+
+func unknownTopic(name string) {
+	var topics []Topic
+	var names []string
+
+	getTopics(&topics)
+	for _, v := range topics {
+		names = append(names, v.Name)
+	}
+
+	msg := fmt.Sprintf("td: the topic '%v' does not exist.", name)
+	similars := dym.Similar(names, name)
+	if len(similars) == 0 {
+		fmt.Printf(msg)
+	} else {
+		msg += "\n\nDid you mean one of these?\n"
+		for _, v := range similars {
+			msg += "\t" + v + "\n"
+		}
+		fmt.Printf(msg)
+	}
 }
 
 func Edit() error {
@@ -79,11 +102,10 @@ func Fetch() error {
 }
 
 func List() error {
-	adir := filepath.Join(home(), dirName, newDir)
-	entries, _ := ioutil.ReadDir(adir)
-	for _, entry := range entries {
-		name := strings.SplitN(entry.Name(), ".", 2)
-		fmt.Printf("%v\n", name[0])
+	var topics []Topic
+	getTopics(&topics)
+	for _, v := range topics {
+		fmt.Printf("%v\n", v.Name)
 	}
 	return nil
 }
@@ -154,8 +176,8 @@ func Delete(name string) error {
 		}
 	}
 	if tid == "" {
-		// TODO: dym
-		return newError(fmt.Sprintf("the topic '%v' does not exist", name))
+		unknownTopic(name)
+		os.Exit(1)
 	}
 
 	// Perform the HTTP request.

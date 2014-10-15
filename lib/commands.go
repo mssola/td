@@ -162,6 +162,7 @@ func Create(name string) error {
 	return addTopic(t)
 }
 
+// TODO: tname is in fact name on success.
 func Delete(name string) error {
 	var topics, actual []Topic
 	var tid, tname string
@@ -196,5 +197,34 @@ func Delete(name string) error {
 }
 
 func Rename(oldName, newName string) error {
+	var topics []Topic
+	var id, name string
+
+	getTopics(&topics)
+	for k, v := range topics {
+		if v.Name == oldName {
+			id = v.Id
+			topics[k].Name = newName
+		}
+	}
+	if id == "" {
+		unknownTopic(name)
+		os.Exit(1)
+	}
+
+	// Perform the HTTP Request.
+	t := &Topic{Name: newName}
+	body, _ := json.Marshal(t)
+	_, err := getResponse("PUT", "/topics/"+id, bytes.NewReader(body))
+	if err != nil {
+		return fromError(err)
+	}
+
+	// Update the system.
+	writeJson(topics)
+	file := filepath.Join(home(), dirName, oldDir)
+	os.Rename(filepath.Join(file, oldName), filepath.Join(file, newName))
+	file = filepath.Join(home(), dirName, newDir)
+	os.Rename(filepath.Join(file, oldName), filepath.Join(file, newName))
 	return nil
 }

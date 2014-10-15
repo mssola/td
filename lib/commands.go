@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -80,7 +81,8 @@ func List() error {
 	adir := filepath.Join(home(), dirName, newDir)
 	entries, _ := ioutil.ReadDir(adir)
 	for _, entry := range entries {
-		fmt.Printf("%v\n", entry.Name())
+		name := strings.SplitN(entry.Name(), ".", 2)
+		fmt.Printf("%v\n", name[0])
 	}
 	return nil
 }

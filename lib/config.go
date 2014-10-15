@@ -6,7 +6,6 @@ package lib
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -33,10 +32,7 @@ func Initialize() {
 	// any following command touching the file system can do it safely.
 	if err := initFS(); err == nil {
 		// And initialize the "config" global variable.
-		fmt.Printf("Inside\n")
 		initConfig()
-	} else {
-		fmt.Printf("%v\n", err)
 	}
 }
 

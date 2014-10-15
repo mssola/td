@@ -45,19 +45,18 @@ func usage() {
 
 // The user passed a wrong number of arguments.
 func wrongArguments() {
-	var msg string
-	var n int
+	var n, msg string
 
 	switch os.Args[1] {
 	case "create":
 		fallthrough
 	case "delete":
-		n = 1
+		n = "1 argument"
 	case "rename":
-		n = 2
+		n = "2 arguments"
 	}
-	msg = fmt.Sprintf("the '%v' command require %v arguments, %v given",
-		os.Args[1], n, len(os.Args))
+	msg = fmt.Sprintf("the '%v' command require %v, %v given",
+		os.Args[1], n, len(os.Args)-2)
 	cmd(lib.See(msg, "--help"))
 }
 

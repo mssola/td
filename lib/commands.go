@@ -5,6 +5,7 @@
 package lib
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,11 +20,11 @@ import (
 )
 
 type Topic struct {
-	Id         string    `json:"id"`
-	Name       string    `json:"name"`
-	Contents   string    `json:"contents"`
-	Created_at time.Time `json:"created_at"`
-	Markdown   string    `json:"markdown"`
+	Id         string    `json:"id,omitempty"`
+	Name       string    `json:"name,omitempty"`
+	Contents   string    `json:"contents,omitempty"`
+	Created_at time.Time `json:"created_at,omitempty"`
+	Markdown   string    `json:"markdown,omitempty"`
 }
 
 // TODO
@@ -92,7 +93,20 @@ func Push() error {
 }
 
 func Create(name string) error {
-	return nil
+	// Perform the HTTP request.
+	t := &Topic{Name: name}
+	body, _ := json.Marshal(t)
+	res, err := getResponse("POST", "/topics", bytes.NewReader(body))
+	if err != nil {
+		return fromError(err)
+	}
+
+	// Parse the newly created topic and add it to the list.
+	body, _ = ioutil.ReadAll(res.Body)
+	if err := json.Unmarshal(body, &t); err != nil {
+		return fromError(err)
+	}
+	return addTopic(t)
 }
 
 func Delete(name string) error {

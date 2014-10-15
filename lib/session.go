@@ -100,6 +100,7 @@ func LoggedIn() bool {
 	return config.Token != ""
 }
 
+// TODO: it doesn't actually fetch after login :/
 func Login() error {
 	if LoggedIn() {
 		return See("you are already logged in", "logout")
@@ -123,10 +124,10 @@ func Login() error {
 	}
 	fmt.Printf("OK\n")
 	fmt.Printf("Fetching topics...\n")
-	Fetch()
-	return nil
+	return Fetch()
 }
 
+// TODO: somewhere in this code is printing <nil> on success :/
 func Logout() error {
 	// Remove the `.td` directory and everything inside of it.
 	cfg := filepath.Join(home(), dirName)

@@ -142,6 +142,8 @@ func main() {
 		} else if os.Args[1] == "delete" {
 			cmd(lib.Delete(os.Args[2]))
 		} else {
+			// TODO: it will prompt to login if the only thing failing are that
+			// we haven't passed parameters to it.
 			verboseHelp()
 		}
 	} else if largs == 4 && os.Args[1] == "rename" {

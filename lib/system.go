@@ -111,3 +111,7 @@ func write(topic *Topic, path string) error {
 	}
 	return nil
 }
+
+func addTopic(topic *Topic) error {
+	return nil
+}

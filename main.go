@@ -43,8 +43,26 @@ func usage() {
 	os.Exit(0)
 }
 
+// The user passed a wrong number of arguments.
+func wrongArguments() {
+	var msg string
+	var n int
+
+	switch os.Args[1] {
+	case "create":
+		fallthrough
+	case "delete":
+		n = 1
+	case "rename":
+		n = 2
+	}
+	msg = fmt.Sprintf("the '%v' command require %v arguments, %v given",
+		os.Args[1], n, len(os.Args))
+	cmd(lib.See(msg, "--help"))
+}
+
 // Show a rather verbose help message, with command suggestions.
-func verboseHelp() {
+func verboseHelp(logged bool) {
 	// No command given, just get out of here.
 	if len(os.Args) == 1 {
 		cmd(lib.See("you are not logged in", "login"))
@@ -67,7 +85,11 @@ func verboseHelp() {
 			// match, then it means that the error to be shown is that the user
 			// wasn't logged in.
 			if v == os.Args[1] {
-				cmd(lib.See("you are not logged in", "login"))
+				if logged {
+					wrongArguments()
+				} else {
+					cmd(lib.See("you are not logged in", "login"))
+				}
 			}
 
 			str += fmt.Sprintf("\t%v\n", v)
@@ -117,7 +139,7 @@ func main() {
 
 	// All the other commands require the user to be logged in.
 	if !lib.LoggedIn() {
-		verboseHelp()
+		verboseHelp(false)
 	}
 
 	// Let's execute the given command now.
@@ -134,7 +156,7 @@ func main() {
 		case "push":
 			cmd(lib.Push())
 		default:
-			verboseHelp()
+			verboseHelp(true)
 		}
 	} else if largs == 3 {
 		if os.Args[1] == "create" {
@@ -142,13 +164,11 @@ func main() {
 		} else if os.Args[1] == "delete" {
 			cmd(lib.Delete(os.Args[2]))
 		} else {
-			// TODO: it will prompt to login if the only thing failing are that
-			// we haven't passed parameters to it.
-			verboseHelp()
+			verboseHelp(true)
 		}
 	} else if largs == 4 && os.Args[1] == "rename" {
 		cmd(lib.Rename(os.Args[2], os.Args[3]))
 	} else {
-		verboseHelp()
+		verboseHelp(true)
 	}
 }

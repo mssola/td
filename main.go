@@ -55,7 +55,7 @@ func wrongArguments() {
 	case "rename":
 		n = "2 arguments"
 	}
-	msg = fmt.Sprintf("the '%v' command require %v, %v given",
+	msg = fmt.Sprintf("the '%v' command requires %v, %v given",
 		os.Args[1], n, len(os.Args)-2)
 	cmd(lib.See(msg, "--help"))
 }

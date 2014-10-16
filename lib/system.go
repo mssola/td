@@ -23,9 +23,6 @@ const (
 	newDir     = "new"
 )
 
-// TODO: maybe we can be less paranoid in regards to errors. This can be
-// accomplished by making sure on start that the filesystem in in order.
-
 func readTopics(topics *[]Topic) {
 	file := filepath.Join(home(), dirName, topicsName)
 	body, _ := ioutil.ReadFile(file)
@@ -60,47 +57,32 @@ func addTopic(topic *Topic) {
 	write(topic, odir)
 }
 
-func save(topics []Topic) error {
+func save(topics []Topic) {
 	// First of all, reset the temporary directory.
 	dir := filepath.Join(home(), dirName, tmpDir)
 	os.RemoveAll(dir)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fromError(err)
-	}
+	os.MkdirAll(dir, 0755)
 
 	// Save all the topics to this temporary directory.
 	for _, t := range topics {
-		if err := write(&t, dir); err != nil {
-			return err
-		}
+		write(&t, dir)
 	}
 
 	// Update the old and new directories
 	adir := filepath.Join(home(), dirName, oldDir)
-	if err := copyDir(dir, adir); err != nil {
-		return fromError(err)
-	}
+	copyDir(dir, adir)
 	adir = filepath.Join(home(), dirName, newDir)
-	if err := copyDir(dir, adir); err != nil {
-		return fromError(err)
-	}
+	copyDir(dir, adir)
 
 	// And finally, write the JSON file.
 	writeTopics(topics)
-	return nil
 }
 
-func write(topic *Topic, path string) error {
+func write(topic *Topic, path string) {
 	path = filepath.Join(path, topic.Name+".md")
-	f, err := os.Create(path)
-	if err != nil {
-		return fromError(err)
-	}
-	defer f.Close()
-	if _, err := f.WriteString(topic.Contents); err != nil {
-		return fromError(err)
-	}
-	return nil
+	f, _ := os.Create(path)
+	f.Close()
+	f.WriteString(topic.Contents)
 }
 
 func update(success, fails []string) {
@@ -111,9 +93,7 @@ func update(success, fails []string) {
 	for _, v := range success {
 		src := filepath.Join(srcDir, v+".md")
 		dst := filepath.Join(dstDir, v+".md")
-		if err := copyFile(src, dst); err != nil {
-			fails = append(fails, v)
-		}
+		copyFile(src, dst)
 	}
 
 	// List failures.

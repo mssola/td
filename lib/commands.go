@@ -71,9 +71,7 @@ func Fetch() error {
 	}
 
 	// And save the results.
-	if err := save(topics); err != nil {
-		return err
-	}
+	save(topics)
 	fmt.Printf("Topics updated.\n")
 	return nil
 }

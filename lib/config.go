@@ -43,19 +43,14 @@ func initFS() error {
 	if err := checkDir(newDir); err != nil {
 		return err
 	}
-	if err := checkDir(tmpDir); err != nil {
-		return err
-	}
-	return nil
+	return checkDir(tmpDir)
 }
 
 func checkDir(dir string) error {
 	s := filepath.Join(home(), dirName, dir)
 	if _, err := os.Stat(s); err != nil {
 		if os.IsNotExist(err) {
-			if err = os.MkdirAll(s, 0755); err != nil {
-				return newError("there's something wrong with the file system")
-			}
+			os.MkdirAll(s, 0755)
 			return nil
 		}
 		return newError("there's something wrong with the file system")
@@ -73,14 +68,11 @@ func initConfig() {
 		config.logged = false
 		return
 	}
-	contents, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		config.logged = false
-		return
-	}
 
 	// And finally we'll initialize the config variable properly.
+	contents, _ := ioutil.ReadFile(filePath)
 	if err = json.Unmarshal(contents, &config); err != nil {
+		config.logged = false
 		return
 	}
 	config.logged = (config.Token != "")
@@ -92,16 +84,11 @@ func configFile() (string, error) {
 	cfg := filepath.Join(home(), dirName, configName)
 	if _, err := os.Stat(cfg); os.IsNotExist(err) {
 		dir := filepath.Dir(cfg)
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			return "", newError("config file could not be read")
-		}
+		os.MkdirAll(dir, 0755)
 
 		// Create the config file.
-		file, err := os.Create(cfg)
-		defer file.Close()
-		if err != nil {
-			return "", newError("config file could not be read")
-		}
+		file, _ := os.Create(cfg)
+		file.Close()
 	} else if err != nil {
 		return "", newError("config file could not be read")
 	}

@@ -13,22 +13,43 @@ import (
 )
 
 var (
+	// This is the subdirectory inside "home" where all the application data is
+	// contained in.
 	dirName = ".td"
 )
 
 const (
+	// The name of the list of topics.
 	topicsName = "topics.json"
-	tmpDir     = "tmp"
-	oldDir     = "old"
-	newDir     = "new"
+
+	// The name for the directory where temporary data gets stored.
+	tmpDir = "tmp"
+
+	// The name for the directory with contents from the latest version on the
+	// server.
+	oldDir = "old"
+
+	// The name for the directory where the user edits topics (a.k.a. the "To
+	// do" list).
+	newDir = "new"
 )
 
+// Note that all these functions never return an error. This is because all the
+// errors that could be returned are I/O related, and any error of this kind
+// has already been checked because of the initial call to the "Initialize"
+// function in the "main" function. Therefore, it's not worth to check errors,
+// since they will, in fact, never occur.
+
+// Read all the topics that we have localy and put them in the given topics
+// array.
 func readTopics(topics *[]Topic) {
 	file := filepath.Join(home(), dirName, topicsName)
 	body, _ := ioutil.ReadFile(file)
 	json.Unmarshal(body, topics)
 }
 
+// Save the given topics into the list of local topics. Note that this function
+// effectively replaces the previous list.
 func writeTopics(topics []Topic) {
 	// Clean it up, we don't want to store the contents.
 	for k, _ := range topics {
@@ -44,6 +65,7 @@ func writeTopics(topics []Topic) {
 	f.Close()
 }
 
+// Add the given topic to the list of local topics.
 func addTopic(topic *Topic) {
 	// Add the topic to the JSON file.
 	topics := []Topic{*topic}
@@ -57,6 +79,10 @@ func addTopic(topic *Topic) {
 	write(topic, odir)
 }
 
+// Save all the data from the given topics. This means that all the directories
+// will be updates accordingly with the new contents for each file. Plus, this
+// function will also call the "writeTopics" function in order to store the
+// given list of topics into our local list of topics.
 func save(topics []Topic) {
 	// First of all, reset the temporary directory.
 	dir := filepath.Join(home(), dirName, tmpDir)
@@ -78,6 +104,9 @@ func save(topics []Topic) {
 	writeTopics(topics)
 }
 
+// Save the contents of the given topic. The file getting created will be the
+// name of the topic with the ".md" extension. The directory where this file
+// will be contained is the given "path" parameter.
 func write(topic *Topic, path string) {
 	path = filepath.Join(path, topic.Name+".md")
 	f, _ := os.Create(path)
@@ -85,6 +114,12 @@ func write(topic *Topic, path string) {
 	f.WriteString(topic.Contents)
 }
 
+// Copy all the files from the "new" directory to the "old" directory. This is
+// done when performing the "push" command. Also note that this function will
+// print the list of topics that could not be pushed if any. The two given
+// parameters are a list of strings containing names of topics. The "success"
+// slice contains the topics that have already been pushed to the server. The
+// "fails" slice contains the topics that have failed on the push action.
 func update(success, fails []string) {
 	srcDir := filepath.Join(home(), dirName, newDir)
 	dstDir := filepath.Join(home(), dirName, oldDir)

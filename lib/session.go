@@ -84,5 +84,8 @@ func Login() error {
 func Logout() error {
 	// Remove the `.td` directory and everything inside of it.
 	cfg := filepath.Join(home(), dirName)
-	return fromError(os.RemoveAll(cfg))
+	if err := os.RemoveAll(cfg); err != nil {
+		return fromError(err)
+	}
+	return nil
 }

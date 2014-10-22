@@ -110,8 +110,8 @@ func save(topics []Topic) {
 func write(topic *Topic, path string) {
 	path = filepath.Join(path, topic.Name+".md")
 	f, _ := os.Create(path)
-	f.Close()
 	f.WriteString(topic.Contents)
+	f.Close()
 }
 
 // Copy all the files from the "new" directory to the "old" directory. This is

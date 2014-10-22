@@ -70,7 +70,6 @@ func handleLogin(t loginReader) error {
 
 	// Save config
 	fmt.Printf("\nLogging in... ")
-	fmt.Printf("%v\n", config)
 	body, _ := json.Marshal(config)
 	filePath, _ := configFile()
 	f, _ := os.Create(filePath)

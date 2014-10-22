@@ -62,7 +62,7 @@ You can just perform the `list` command for that.
 
 ## TODO
 
-- Treat errors on create and rename.
+- Treat errors on create, update, delete...
 - Commands such as: status, diff.
 - timeouts
 

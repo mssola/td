@@ -11,6 +11,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Helper used to test custom errors. This is used throughout the test suite.
+func testError(t *testing.T, err error, msg, see string) {
+	assert.NotNil(t, err)
+	e, ce := err.(*Error)
+	assert.True(t, ce)
+	assert.Equal(t, e.message, msg)
+	assert.Equal(t, e.see, see)
+}
+
 func TestError(t *testing.T) {
 	assert.Nil(t, fromError(nil))
 	assert.Equal(t, fromError(errors.New("a")).Error(), "td: a.\n")

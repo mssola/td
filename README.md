@@ -60,6 +60,12 @@ file.
 Note that you don't have to open the editor to know the topics that you have.
 You can just perform the `list` command for that.
 
+## TODO
+
+- Treat errors on create and rename.
+- Commands such as: status, diff.
+- timeouts
+
 ## License
 
 Copyright &copy; 2014 Miquel Sabaté Solà

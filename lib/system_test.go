@@ -85,6 +85,9 @@ func TestSave(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
+	h := testHelper()
+	defer h.teardown()
+
 	// Give a warm place to this test.
 	os.RemoveAll("/tmp/td")
 	os.MkdirAll("/tmp/td", 0755)

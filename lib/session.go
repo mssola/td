@@ -13,15 +13,33 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/howeyc/gopass"
+	"code.google.com/p/go.crypto/ssh/terminal"
 )
 
+// The struct representing the login request.
 type request struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 
-func loginFromTty() error {
+// This is an interface that just defines one method: login. Implementers of
+// this interface handle how the login data gets collected. This is useful
+// because in the application we collect this data through the TTY, but for
+// the tests we set them directly.
+type loginReader interface {
+	// This method is responsible for giving a value to the Server field of the
+	// configuration struct, and it also initializes the login request, that is
+	// the value being returned by this function.
+	login() *request
+}
+
+// We don't need any extra fields, this type only wants to implement the
+// loginReader interface.
+type tty struct{}
+
+// This application implements the login function by reading the different
+// values from the TTY.
+func (tty) login() *request {
 	var r request
 
 	fmt.Print("Server: ")
@@ -29,11 +47,42 @@ func loginFromTty() error {
 	fmt.Print("Name: ")
 	fmt.Scanf("%v", &r.Name)
 	fmt.Print("Password: ")
-	r.Password = string(gopass.GetPasswd())
-
-	return performLogin(&r)
+	b, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
+	r.Password = string(b)
+	return &r
 }
 
+// Read the login data from the given loginReader and perform the login command.
+func handleLogin(t loginReader) error {
+	if LoggedIn() {
+		return See("you are already logged in", "logout")
+	}
+
+	// Get the initial values for the request.
+	r := t.login()
+	fmt.Printf("\n")
+
+	// And perform the login itself.
+	if err := performLogin(r); err != nil {
+		fmt.Printf("\nLogging in... FAIL\n")
+		return err
+	}
+
+	// Save config
+	fmt.Printf("\nLogging in... ")
+	fmt.Printf("%v\n", config)
+	body, _ := json.Marshal(config)
+	filePath, _ := configFile()
+	f, _ := os.Create(filePath)
+	f.Write(body)
+	f.Close()
+	fmt.Printf("OK\nFetching topics...\n")
+	return Fetch()
+}
+
+// Called by the handleLogin function, it performs the HTTP request to log in
+// the given user. This function also deals with response, by initializing the
+// config global variable accordingly.
 func performLogin(r *request) error {
 	url := requestUrl("/login", false)
 	body, _ := json.Marshal(r)
@@ -53,43 +102,20 @@ func performLogin(r *request) error {
 	return nil
 }
 
+// Returns true if it has been detected that the current user is logged in.
 func LoggedIn() bool {
 	return config.logged
 }
 
-// TODO: it doesn't actually fetch after login :/
+// The login command.
 func Login() error {
-	if LoggedIn() {
-		return See("you are already logged in", "logout")
-	}
-
-	// Get the initial values for the request.
-	if err := loginFromTty(); err != nil {
-		fmt.Printf("\nLogging in... FAIL\n")
-		return err
-	}
-
-	// Save config
-	fmt.Printf("\nLogging in... ")
-	body, _ := json.Marshal(config)
-	filePath, _ := configFile()
-	f, _ := os.Create(filePath)
-	defer f.Close()
-	if _, err := f.Write(body); err != nil {
-		fmt.Printf("FAIL\n")
-		return newError("could not save the config!")
-	}
-	fmt.Printf("OK\n")
-	fmt.Printf("Fetching topics...\n")
-	return Fetch()
+	// We handle the login with the values provided through the TTY.
+	return handleLogin(tty{})
 }
 
-// TODO: somewhere in this code is printing <nil> on success :/
+// Logout: remove the `.td` directory and everything inside of it.
 func Logout() error {
-	// Remove the `.td` directory and everything inside of it.
 	cfg := filepath.Join(home(), dirName)
-	if err := os.RemoveAll(cfg); err != nil {
-		return fromError(err)
-	}
+	os.RemoveAll(cfg)
 	return nil
 }

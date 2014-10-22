@@ -60,6 +60,12 @@ file.
 Note that you don't have to open the editor to know the topics that you have.
 You can just perform the `list` command for that.
 
+### Bash completion
+
+This package includes a shell script that offers bash completion for this
+application. The completion file is `config/tdcompletion.sh`. Install it
+wherever you want and source it in your `.bashrc` file.
+
 ## TODO
 
 - Treat errors on create, update, delete...

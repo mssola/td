@@ -56,6 +56,11 @@ func Edit() error {
 	return cmd.Run()
 }
 
+func Diff() error {
+	// TODO
+	return nil
+}
+
 func Fetch() error {
 	// Perform the HTTP request.
 	res, err := getResponse("GET", "/topics", nil)
@@ -117,6 +122,11 @@ func Push() error {
 
 	// And finally update the file system.
 	update(success, fails)
+	return nil
+}
+
+func Status() error {
+	// TODO
 	return nil
 }
 

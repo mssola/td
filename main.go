@@ -36,6 +36,7 @@ func usage() {
 			"contents.",
 		"  fetch \tFetch all the info from the server.",
 		"  list  \tList the available topics.",
+		"  login \tLog the current user.",
 		"  logout\tDelete the current session.",
 		"  push  \tPush all the local info to the server.",
 		"  rename\tRename a topic. You have to pass the old name and " +

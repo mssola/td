@@ -29,7 +29,7 @@ func performLogin() error {
 	fmt.Print("Name: ")
 	fmt.Scanf("%v", &r.Name)
 	fmt.Print("Password: ")
-	r.Password = string(gopass.GetPasswdMasked())
+	r.Password = string(gopass.GetPasswd())
 
 	url := requestUrl("/login", false)
 	body, _ := json.Marshal(r)

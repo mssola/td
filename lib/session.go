@@ -21,7 +21,7 @@ type request struct {
 	Password string `json:"password"`
 }
 
-func performLogin() error {
+func loginFromTty() error {
 	var r request
 
 	fmt.Print("Server: ")
@@ -31,6 +31,10 @@ func performLogin() error {
 	fmt.Print("Password: ")
 	r.Password = string(gopass.GetPasswd())
 
+	return performLogin(&r)
+}
+
+func performLogin(r *request) error {
 	url := requestUrl("/login", false)
 	body, _ := json.Marshal(r)
 	reader := bytes.NewReader(body)
@@ -60,7 +64,7 @@ func Login() error {
 	}
 
 	// Get the initial values for the request.
-	if err := performLogin(); err != nil {
+	if err := loginFromTty(); err != nil {
 		fmt.Printf("\nLogging in... FAIL\n")
 		return err
 	}

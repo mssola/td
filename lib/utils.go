@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -127,6 +128,13 @@ func getResponse(method, url string, body io.Reader) (*http.Response, error) {
 	// Check specifically for a timeout.
 	if strings.HasSuffix(err.Error(), "use of closed network connection") {
 		return nil, newError("timed out! Try it again in another time")
+	}
+
+	// Beautify the given error: only return the actual message.
+	re, _ := regexp.Compile(`:\s+(.+)$`)
+	errString := []byte(err.Error())
+	if e := re.FindSubmatch(errString); len(e) == 2 {
+		return nil, newError(string(e[1]))
 	}
 	return nil, fromError(err)
 }

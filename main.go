@@ -27,7 +27,7 @@ const (
 // Show the usage string. The parameter will be used as the exit status code.
 func usage() {
 	msg := []string{
-		"usage: td [--version | --help | <command>] [args]",
+		"usage: td [--version | --help | <command> [args]]",
 		"",
 		"The available commands are:",
 		"  create\tCreate a new topic. It expects one extra argument: the name.",

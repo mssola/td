@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -23,6 +24,7 @@ type Topic struct {
 	Contents   string    `json:"contents,omitempty"`
 	Created_at time.Time `json:"created_at,omitempty"`
 	Markdown   string    `json:"markdown,omitempty"`
+	Error      string    `json:"error,omitempty"`
 }
 
 func unknownTopic(name string) {
@@ -130,6 +132,17 @@ func Status() error {
 	return nil
 }
 
+func topicResponse(t *Topic, res *http.Response) bool {
+	body, _ := ioutil.ReadAll(res.Body)
+	if err := json.Unmarshal(body, t); err != nil {
+		return false
+	}
+	if t.Error != "" {
+		return false
+	}
+	return true
+}
+
 func Create(name string) error {
 	// Perform the HTTP request.
 	t := &Topic{Name: name}
@@ -140,9 +153,8 @@ func Create(name string) error {
 	}
 
 	// Parse the newly created topic and add it to the list.
-	body, _ = ioutil.ReadAll(res.Body)
-	if err := json.Unmarshal(body, &t); err != nil {
-		return fromError(err)
+	if !topicResponse(t, res) {
+		return newError("could not create this topic")
 	}
 	addTopic(t)
 	return nil
@@ -200,9 +212,9 @@ func Rename(oldName, newName string) error {
 	// Perform the HTTP Request.
 	t := &Topic{Name: newName}
 	body, _ := json.Marshal(t)
-	_, err := getResponse("PUT", "/topics/"+id, bytes.NewReader(body))
-	if err != nil {
-		return fromError(err)
+	res, _ := getResponse("PUT", "/topics/"+id, bytes.NewReader(body))
+	if !topicResponse(t, res) {
+		return newError("could not rename this topic")
 	}
 
 	// Update the system.

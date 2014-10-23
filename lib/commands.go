@@ -13,6 +13,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/mssola/dym"
@@ -56,11 +58,6 @@ func Edit() error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
-}
-
-func Diff() error {
-	// TODO
-	return nil
 }
 
 func Fetch() error {
@@ -128,7 +125,33 @@ func Push() error {
 }
 
 func Status() error {
-	// TODO
+	files := []string{}
+	re, _ := regexp.Compile("(\\w+)\\.md")
+
+	sDir := filepath.Join(home(), dirName, oldDir)
+	dDir := filepath.Join(home(), dirName, newDir)
+	out, _ := exec.Command("diff", "-qr", sDir, dDir).Output()
+
+	for _, l := range strings.Split(string(out), "\n") {
+		// Filter out blank lines.
+		l = strings.TrimSpace(l)
+		if l == "" {
+			continue
+		}
+
+		match := re.FindSubmatch([]byte(l))
+		if match != nil && len(match) == 2 {
+			files = append(files, string(match[1]))
+		}
+	}
+
+	if len(files) > 0 {
+		fmt.Printf("The following topics have changed since the last " +
+			"version:\n\n")
+		for _, f := range files {
+			fmt.Printf("\t%v\n", f)
+		}
+	}
 	return nil
 }
 

@@ -36,7 +36,7 @@ _td()
         # Maybe it exists but it's empty.
         contents=`cat $_DIR/$_FILE`
         if [ "$contents" != "" ]; then
-            cmds="create delete diff fetch list logout push rename status"
+            cmds="create delete fetch list logout push rename status"
         fi
     fi
 

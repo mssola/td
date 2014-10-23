@@ -32,8 +32,6 @@ func usage() {
 		"The available commands are:",
 		"  create\tCreate a new topic. It expects one extra argument: the name.",
 		"  delete\tDelete a topic. It expects one extra argument: the name.",
-		"  diff  \tShow the differences between the current and the old " +
-			"contents.",
 		"  fetch \tFetch all the info from the server.",
 		"  list  \tList the available topics.",
 		"  login \tLog the current user.",
@@ -75,7 +73,7 @@ func verboseHelp(logged bool) {
 	msg := lib.See(e, "--help")
 
 	// Get the commands that are close to the one given by the user.
-	d := []string{"login", "--help", "--version", "diff", "fetch", "list",
+	d := []string{"login", "--help", "--version", "fetch", "list",
 		"logout", "push", "status", "create", "delete", "rename"}
 	similars := dym.Similar(d, os.Args[1])
 
@@ -151,8 +149,6 @@ func main() {
 		cmd(lib.Edit())
 	} else if largs == 2 {
 		switch os.Args[1] {
-		case "diff":
-			cmd(lib.Diff())
 		case "fetch":
 			cmd(lib.Fetch())
 		case "list":

@@ -68,7 +68,6 @@ wherever you want and source it in your `.bashrc` file.
 
 ## TODO
 
-- Treat errors on create, update, delete...
 - Commands such as: status, diff.
 - timeouts
 

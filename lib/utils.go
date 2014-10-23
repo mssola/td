@@ -21,6 +21,11 @@ const (
 	defaultEditor = "vi"
 )
 
+var (
+	// The timeout for any HTTP request.
+	requestTimeout = 15 * time.Second
+)
+
 // Returns the value of the current home. This value is fetched from the $TD
 // environment variable. If it's not set, then the $HOME environment variable
 // will be picked. If the $HOME environment variable is not set either,
@@ -113,7 +118,7 @@ func requestUrl(path string, token bool) string {
 func getResponse(method, url string, body io.Reader) (*http.Response, error) {
 	// Setup the client for the HTTP request.
 	client := http.Client{
-		Timeout: 15 * time.Second,
+		Timeout: requestTimeout,
 	}
 	str := requestUrl(url, true)
 	req, _ := http.NewRequest(method, str, body)

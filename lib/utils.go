@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
 const (
@@ -108,9 +110,23 @@ func requestUrl(path string, token bool) string {
 // to send data through the body of the request. In this case the "body"
 // parameter should be used.
 func getResponse(method, url string, body io.Reader) (*http.Response, error) {
-	client := &http.Client{}
+	// Setup the client for the HTTP request.
+	client := http.Client{
+		Timeout: 15 * time.Second,
+	}
 	str := requestUrl(url, true)
 	req, _ := http.NewRequest(method, str, body)
 	req.Header.Set("Content-Type", "application/json")
-	return client.Do(req)
+
+	// Perform the HTTP request itself.
+	res, err := client.Do(req)
+	if err == nil {
+		return res, nil
+	}
+
+	// Check specifically for a timeout.
+	if strings.HasSuffix(err.Error(), "use of closed network connection") {
+		return nil, newError("timed out! Try it again in another time")
+	}
+	return nil, fromError(err)
 }

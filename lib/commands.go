@@ -64,7 +64,7 @@ func Fetch() error {
 	// Perform the HTTP request.
 	res, err := getResponse("GET", "/topics", nil)
 	if err != nil {
-		return fromError(err)
+		return err
 	}
 
 	// Parse the given topics.
@@ -172,7 +172,7 @@ func Create(name string) error {
 	body, _ := json.Marshal(t)
 	res, err := getResponse("POST", "/topics", bytes.NewReader(body))
 	if err != nil {
-		return fromError(err)
+		return err
 	}
 
 	// Parse the newly created topic and add it to the list.
@@ -202,9 +202,8 @@ func Delete(name string) error {
 	}
 
 	// Perform the HTTP request.
-	_, err := getResponse("DELETE", "/topics/"+id, nil)
-	if err != nil {
-		return fromError(err)
+	if _, err := getResponse("DELETE", "/topics/"+id, nil); err != nil {
+		return err
 	}
 
 	// On the system.
@@ -235,7 +234,10 @@ func Rename(oldName, newName string) error {
 	// Perform the HTTP Request.
 	t := &Topic{Name: newName}
 	body, _ := json.Marshal(t)
-	res, _ := getResponse("PUT", "/topics/"+id, bytes.NewReader(body))
+	res, err := getResponse("PUT", "/topics/"+id, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
 	if !topicResponse(t, res) {
 		return newError("could not rename this topic")
 	}

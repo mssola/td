@@ -13,8 +13,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
-	"strings"
 	"time"
 
 	"github.com/mssola/dym"
@@ -61,6 +59,11 @@ func Edit() error {
 }
 
 func Fetch() error {
+	// Ask before wiping out the currently changed topics.
+	if !safeFetch() {
+		return nil
+	}
+
 	// Perform the HTTP request.
 	res, err := getResponse("GET", "/topics", nil)
 	if err != nil {
@@ -125,25 +128,7 @@ func Push() error {
 }
 
 func Status() error {
-	files := []string{}
-	re, _ := regexp.Compile("(\\w+)\\.md")
-
-	sDir := filepath.Join(home(), dirName, oldDir)
-	dDir := filepath.Join(home(), dirName, newDir)
-	out, _ := exec.Command("diff", "-qr", sDir, dDir).Output()
-
-	for _, l := range strings.Split(string(out), "\n") {
-		// Filter out blank lines.
-		l = strings.TrimSpace(l)
-		if l == "" {
-			continue
-		}
-
-		match := re.FindSubmatch([]byte(l))
-		if match != nil && len(match) == 2 {
-			files = append(files, string(match[1]))
-		}
-	}
+	files := changedTopics()
 
 	if len(files) > 0 {
 		fmt.Printf("The following topics have changed since the last " +

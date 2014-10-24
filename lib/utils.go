@@ -5,6 +5,7 @@
 package lib
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -142,4 +143,21 @@ func getResponse(method, url string, body io.Reader) (*http.Response, error) {
 		return nil, newError(string(e[1]))
 	}
 	return nil, fromError(err)
+}
+
+// TODO
+func safeFetch() bool {
+	if topics := changedTopics(); len(topics) > 0 {
+		fmt.Printf("You haven't pushed the changes for the following topics:\n")
+		for _, v := range topics {
+			fmt.Printf("\t%v\n", v)
+		}
+		fmt.Printf("Are you sure that you want to do this? (y/n): ")
+
+		var str string
+		fmt.Scanln(&str)
+		str = strings.ToLower(str)
+		return str == "y" || str == "yes"
+	}
+	return true
 }

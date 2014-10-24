@@ -34,10 +34,10 @@ The workflow for this application is as follows:
 
 First of all, let's see how we can interact with the server. There are
 basically two commands for this: `fetch` and `push`. The `fetch` command pulls
-everything from the server and saves it to our local setup. Note that currently
-this command will effectively wipe out the contents of our local setup. This is
-not a good thing, so I'll fix it as soon as possible. The `push` command will
-grab all our local editions and push it to the server.
+everything from the server and saves it to our local setup. If there are
+some local changes that have not been pushed yet, then it will ask for
+permission before fetching the topics. The `push` command will grab all
+our local editions and push it to the server.
 
 One can create and delete topics with the `create` and `delete` commands,
 respectively. Note that both commands expect the name of the topic to be

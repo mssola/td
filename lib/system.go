@@ -9,7 +9,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
+	"strings"
 )
 
 var (
@@ -77,6 +80,31 @@ func addTopic(topic *Topic) {
 	write(topic, odir)
 	odir = filepath.Join(home(), dirName, newDir)
 	write(topic, odir)
+}
+
+// Returns a list of all the topics that have changed since the last version.
+// TODO: test me!
+func changedTopics() []string {
+	files := []string{}
+	re, _ := regexp.Compile("(\\w+)\\.md")
+
+	sDir := filepath.Join(home(), dirName, oldDir)
+	dDir := filepath.Join(home(), dirName, newDir)
+	out, _ := exec.Command("diff", "-qr", sDir, dDir).Output()
+
+	for _, l := range strings.Split(string(out), "\n") {
+		// Filter out blank lines.
+		l = strings.TrimSpace(l)
+		if l == "" {
+			continue
+		}
+
+		match := re.FindSubmatch([]byte(l))
+		if match != nil && len(match) == 2 {
+			files = append(files, string(match[1]))
+		}
+	}
+	return files
 }
 
 // Save all the data from the given topics. This means that all the directories

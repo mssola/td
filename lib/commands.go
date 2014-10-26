@@ -151,6 +151,8 @@ func Status() error {
 		for _, f := range files {
 			fmt.Printf("\t%v\n", f)
 		}
+	} else {
+		fmt.Printf("There's nothing to be pushed.\n")
 	}
 	return nil
 }

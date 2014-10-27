@@ -50,12 +50,23 @@ func unknownTopic(name string) {
 }
 
 func Edit() error {
+	// Open up the editor.
 	cmd := exec.Command(editor())
 	cmd.Dir = filepath.Join(home(), dirName, newDir)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return fromError(err)
+	}
+
+	// Push all the changes ,
+	files := changedTopics()
+	if len(files) > 0 {
+		fmt.Printf("Pushing your changes to the server.\n")
+		return Push()
+	}
+	return nil
 }
 
 func Fetch() error {

@@ -51,11 +51,15 @@ As an example:
 
 The most important thing is to view the "To do" list and edit it. For this you
 don't have to pass any parameter to the `td` executable. If you do that, then
-your preferred editor will be openned in the directory where all the topics are
-being stored. Your preferred editor is the one set in the `EDITOR` environment
-variable. If this environment variable is not set, then `vi` gets picked. Each
-topic is represented as a file, and the name of the topic is the name of its
-file.
+the following will happen:
+
+1. The topics will be fetched automatically from the server (equivalent to `td
+   fetch`.
+2. Your preferred editor (`$EDITOR`) will be openned in the directory where all
+   the topics are being stored. Each topic is represented as a file, and the
+   name of the topic is the name of its file.
+3. The topics that you have modified will be pushed to the server (equivalent
+   to `td push`, buth only pushing the modified topics).
 
 Note that you don't have to open the editor to know the topics that you have.
 You can just perform the `list` command for that.

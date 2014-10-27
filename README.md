@@ -54,7 +54,7 @@ don't have to pass any parameter to the `td` executable. If you do that, then
 the following will happen:
 
 1. The topics will be fetched automatically from the server (equivalent to `td
-   fetch`.
+   fetch`).
 2. Your preferred editor (`$EDITOR`) will be openned in the directory where all
    the topics are being stored. Each topic is represented as a file, and the
    name of the topic is the name of its file.

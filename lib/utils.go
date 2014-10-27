@@ -5,6 +5,8 @@
 package lib
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -143,6 +145,38 @@ func getResponse(method, url string, body io.Reader) (*http.Response, error) {
 		return nil, newError(string(e[1]))
 	}
 	return nil, fromError(err)
+}
+
+func pushTopics(topics []Topic) {
+	var success, fails []string
+
+	total := len(topics)
+	for k, v := range topics {
+		// Print the status.
+		fmt.Printf("\rPushing... %v/%v\r", k+1, total)
+
+		// Get the contents.
+		file := filepath.Join(home(), dirName, newDir, v.Name+".md")
+		body, _ := ioutil.ReadFile(file)
+		t := &Topic{Contents: string(body)}
+		if t.Contents == "" {
+			success = append(success, v.Name)
+			continue
+		}
+
+		// Perform the request.
+		body, _ = json.Marshal(t)
+		path := "/topics/" + v.Id
+		_, err := getResponse("PUT", path, bytes.NewReader(body))
+		if err == nil {
+			success = append(success, v.Name)
+		} else {
+			fails = append(fails, v.Name)
+		}
+	}
+
+	// And finally update the file system.
+	update(success, fails)
 }
 
 // TODO

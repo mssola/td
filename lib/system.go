@@ -84,10 +84,11 @@ func addTopic(topic *Topic) {
 
 // Returns a list of all the topics that have changed since the last version.
 // TODO: test me!
-func changedTopics() []string {
-	files := []string{}
-	re, _ := regexp.Compile("(\\w+)\\.md")
+func changedTopics() []Topic {
+	var topics, changed []Topic
+	readTopics(&topics)
 
+	re, _ := regexp.Compile(".*/(.+)\\.md")
 	sDir := filepath.Join(home(), dirName, oldDir)
 	dDir := filepath.Join(home(), dirName, newDir)
 	out, _ := exec.Command("diff", "-qr", sDir, dDir).Output()
@@ -99,12 +100,18 @@ func changedTopics() []string {
 			continue
 		}
 
+		// And now append the topic.
 		match := re.FindSubmatch([]byte(l))
 		if match != nil && len(match) == 2 {
-			files = append(files, string(match[1]))
+			name := string(match[1])
+			for _, v := range topics {
+				if v.Name == name {
+					changed = append(changed, v)
+				}
+			}
 		}
 	}
-	return files
+	return changed
 }
 
 // Save all the data from the given topics. This means that all the directories

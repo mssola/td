@@ -60,11 +60,11 @@ func Edit() error {
 		return fromError(err)
 	}
 
-	// Push all the changes ,
-	files := changedTopics()
-	if len(files) > 0 {
+	// Push all the changed files.
+	changed := changedTopics()
+	if len(changed) > 0 {
 		fmt.Printf("Pushing your changes to the server.\n")
-		return Push()
+		pushTopics(changed)
 	}
 	return nil
 }
@@ -104,37 +104,9 @@ func List() error {
 }
 
 func Push() error {
-	var success, fails []string
 	var topics []Topic
 	readTopics(&topics)
-
-	total := len(topics)
-	for k, v := range topics {
-		// Print the status.
-		fmt.Printf("\rPushing... %v/%v\r", k+1, total)
-
-		// Get the contents.
-		file := filepath.Join(home(), dirName, newDir, v.Name+".md")
-		body, _ := ioutil.ReadFile(file)
-		t := &Topic{Contents: string(body)}
-		if t.Contents == "" {
-			success = append(success, v.Name)
-			continue
-		}
-
-		// Perform the request.
-		body, _ = json.Marshal(t)
-		path := "/topics/" + v.Id
-		_, err := getResponse("PUT", path, bytes.NewReader(body))
-		if err == nil {
-			success = append(success, v.Name)
-		} else {
-			fails = append(fails, v.Name)
-		}
-	}
-
-	// And finally update the file system.
-	update(success, fails)
+	pushTopics(topics)
 	return nil
 }
 

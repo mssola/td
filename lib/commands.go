@@ -50,6 +50,11 @@ func unknownTopic(name string) {
 }
 
 func Edit() error {
+	// Fetch the topics from the server.
+	if err := Fetch(); err != nil {
+		return err
+	}
+
 	// Open up the editor.
 	cmd := exec.Command(editor())
 	cmd.Dir = filepath.Join(home(), dirName, newDir)
@@ -76,6 +81,7 @@ func Fetch() error {
 	}
 
 	// Perform the HTTP request.
+	fmt.Printf("Fetching the topics from the server.\n")
 	res, err := getResponse("GET", "/topics", nil)
 	if err != nil {
 		return err
@@ -90,7 +96,6 @@ func Fetch() error {
 
 	// And save the results.
 	save(topics)
-	fmt.Printf("Topics updated.\n")
 	return nil
 }
 

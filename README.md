@@ -27,11 +27,6 @@ executing the following command:
 
     $ td --help
 
-The workflow for this application is as follows:
-
-1. Work locally. Edit the "To do" list, etc.
-2. Then push your changes to the server.
-
 First of all, let's see how we can interact with the server. There are
 basically two commands for this: `fetch` and `push`. The `fetch` command pulls
 everything from the server and saves it to our local setup. If there are
@@ -61,8 +56,12 @@ the following will happen:
 3. The topics that you have modified will be pushed to the server (equivalent
    to `td push`, buth only pushing the modified topics).
 
-Note that you don't have to open the editor to know the topics that you have.
-You can just perform the `list` command for that.
+The previous points are important because it means that you will rarely use
+the `push` and `fetch` commands: the `td` command alone will do the right thing
+always.
+
+Finally, note that you don't have to open the editor to know the topics that
+you have. You can just perform the `list` command for that.
 
 ### Bash completion
 

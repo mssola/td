@@ -4,7 +4,11 @@
 
 package lib
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/mssola/colors"
+)
 
 // The Error type to be used throughout this application.
 type Error struct {
@@ -38,9 +42,17 @@ func fromError(err error) *Error {
 
 // So we implement the Stringer interface.
 func (e *Error) String() string {
-	str := fmt.Sprintf("td: %v.", e.message)
+	red := &colors.Color{
+		Foreground: colors.Red,
+		Background: colors.Saved,
+		Mode:       colors.Bold,
+	}
+	white := colors.Default()
+	white.SetMode(colors.Bold)
+
+	str := fmt.Sprintf("%v %v.", red.Get("error:"), e.message)
 	if e.see != "" {
-		str += fmt.Sprintf(" See: 'td %v'.", e.see)
+		str += fmt.Sprintf(" %v 'td %v'.", white.Get("See:"), e.see)
 	}
 	return str + "\n"
 }

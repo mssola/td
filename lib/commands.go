@@ -36,7 +36,8 @@ func unknownTopic(name string) {
 		names = append(names, v.Name)
 	}
 
-	msg := fmt.Sprintf("td: the topic '%v' does not exist.", name)
+	e := newError(fmt.Sprintf("the topic '%v' does not exist", name))
+	msg := e.String()
 	similars := dym.Similar(names, name)
 	if len(similars) == 0 {
 		fmt.Printf(msg)

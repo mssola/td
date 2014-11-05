@@ -22,7 +22,9 @@ func testError(t *testing.T, err error, msg, see string) {
 
 func TestError(t *testing.T) {
 	assert.Nil(t, fromError(nil))
-	assert.Equal(t, fromError(errors.New("a")).Error(), "td: a.\n")
+	assert.Equal(t, fromError(errors.New("a")).Error(),
+		"\x1b[1;49;31merror:\x1b[0;m a.\n")
 	msg := See("hello", "help").String()
-	assert.Equal(t, msg, "td: hello. See: 'td help'.\n")
+	assert.Equal(t, msg,
+		"\x1b[1;49;31merror:\x1b[0;m hello. \x1b[1;49;39mSee:\x1b[0;m 'td help'.\n")
 }

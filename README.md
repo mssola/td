@@ -54,7 +54,7 @@ the following will happen:
    the topics are being stored. Each topic is represented as a file, and the
    name of the topic is the name of its file.
 3. The topics that you have modified will be pushed to the server (equivalent
-   to `td push`, buth only pushing the modified topics).
+   to `td push`, but only pushing the modified topics).
 
 The previous points are important because it means that you will rarely use
 the `push` and `fetch` commands: the `td` command alone will do the right thing

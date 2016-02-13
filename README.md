@@ -21,47 +21,23 @@ just use the `logout` command.
 
 ### Commands
 
-In this section I'm assuming that you've already logged in. At this point there
-are a lot of things that can be done. You can see the full list of commands by
-executing the following command:
+After logging in, you can just perform the following command:
 
-    $ td --help
+    $ td
 
-First of all, let's see how we can interact with the server. There are
-basically two commands for this: `fetch` and `push`. The `fetch` command pulls
-everything from the server and saves it to our local setup. If there are
-some local changes that have not been pushed yet, then it will ask for
-permission before fetching the topics. The `push` command will grab all
-our local editions and push it to the server.
+This will fetch the topics from your server and open up your favorite editor
+(through the `EDITOR` env. variable). When you are done, close your editor and
+it will automatically push to the server the topics that have changed.
 
-One can create and delete topics with the `create` and `delete` commands,
-respectively. Note that both commands expect the name of the topic to be
-created/deleted. Moreover, a topic can be renamed with the `rename` command.
-This command expects two parameters: the old and the new name, in this order.
-As an example:
+Besides editing, you can `create`, `delete` and `rename`. See:
 
     $ td create test
-    $ td rename test another
+    $ td rename oldname newname
     $ td delete another
 
-The most important thing is to view the "To do" list and edit it. For this you
-don't have to pass any parameter to the `td` executable. If you do that, then
-the following will happen:
-
-1. The topics will be fetched automatically from the server (equivalent to `td
-   fetch`).
-2. Your preferred editor (`$EDITOR`) will be openned in the directory where all
-   the topics are being stored. Each topic is represented as a file, and the
-   name of the topic is the name of its file.
-3. The topics that you have modified will be pushed to the server (equivalent
-   to `td push`, but only pushing the modified topics).
-
-The previous points are important because it means that you will rarely use
-the `push` and `fetch` commands: the `td` command alone will do the right thing
-always.
-
 Finally, note that you don't have to open the editor to know the topics that
-you have. You can just perform the `list` command for that.
+you have. You can just perform the `list` command for that. For more
+information, just use the `help` command.
 
 ### Bash completion
 
@@ -91,4 +67,3 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-

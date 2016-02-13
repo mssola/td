@@ -66,7 +66,7 @@ you have. You can just perform the `list` command for that.
 ### Bash completion
 
 This package includes a shell script that offers bash completion for this
-application. The completion file is `config/tdcompletion.sh`. Install it
+application. The completion file is `scripts/tdcompletion.sh`. Install it
 wherever you want and source it in your `.bashrc` file.
 
 ## License

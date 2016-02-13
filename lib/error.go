@@ -10,34 +10,28 @@ import (
 	"github.com/mssola/colors"
 )
 
-// The Error type to be used throughout this application.
+// Error type to be used throughout this application.
 type Error struct {
 	message string
 	see     string
 }
 
-// Build a new error from the given message.
-func newError(message string) *Error {
-	return &Error{
-		message: message,
-		see:     "",
-	}
+// NewError builds a new error from the given message.
+func NewError(message string) *Error {
+	return &Error{message: message, see: ""}
 }
 
-// Build a new error from the given messages.
+// See builds a new error from the given messages.
 func See(message, see string) *Error {
-	return &Error{
-		message: message,
-		see:     see,
-	}
+	return &Error{message: message, see: see}
 }
 
-// Build a new custom error from the given standard error.
+// fromError build a new custom error from the given standard error.
 func fromError(err error) *Error {
 	if err == nil {
 		return nil
 	}
-	return newError(err.Error())
+	return NewError(err.Error())
 }
 
 // So we implement the Stringer interface.
@@ -57,7 +51,7 @@ func (e *Error) String() string {
 	return str + "\n"
 }
 
-// Se we implement the error interface.
+// So we implement the error interface.
 func (e *Error) Error() string {
 	return e.String()
 }

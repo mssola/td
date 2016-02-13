@@ -8,61 +8,32 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"time"
-
-	"github.com/mssola/dym"
 )
 
-type Topic struct {
-	Id         string    `json:"id,omitempty"`
-	Name       string    `json:"name,omitempty"`
-	Contents   string    `json:"contents,omitempty"`
-	Created_at time.Time `json:"created_at,omitempty"`
-	Markdown   string    `json:"markdown,omitempty"`
-	Error      string    `json:"error,omitempty"`
-}
-
-func unknownTopic(name string) {
-	var topics []Topic
-	var names []string
-
-	readTopics(&topics)
-	for _, v := range topics {
-		names = append(names, v.Name)
-	}
-
-	e := newError(fmt.Sprintf("the topic '%v' does not exist", name))
-	msg := e.String()
-	similars := dym.Similar(names, name)
-	if len(similars) == 0 {
-		fmt.Printf(msg)
-	} else {
-		msg += "\n\nDid you mean one of these?\n"
-		for _, v := range similars {
-			msg += "\t" + v + "\n"
-		}
-		fmt.Printf(msg)
-	}
-}
-
-func Edit() error {
-	// Fetch the topics from the server.
-	if err := Fetch(); err != nil {
-		return err
-	}
-
-	// Open up the editor.
+// Done this way to test it.
+var editCommand = func() error {
 	cmd := exec.Command(editor())
 	cmd.Dir = filepath.Join(home(), dirName, newDir)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+
+	return cmd.Run()
+}
+
+// Edit performs the default command. That is, it fetches all the topics, opens
+// up the default editor and pushes the changes.
+func Edit() error {
+	// Fetch the topics from the server.
+	if err := fetch(); err != nil {
+		return err
+	}
+
+	// Open up the editor.
+	if err := editCommand(); err != nil {
 		return fromError(err)
 	}
 
@@ -75,32 +46,13 @@ func Edit() error {
 	return nil
 }
 
-func Fetch() error {
-	// Ask before wiping out the currently changed topics.
-	if !safeFetch() {
-		return nil
-	}
-
-	// Perform the HTTP request.
-	fmt.Printf("Fetching the topics from the server.\n")
-	res, err := getResponse("GET", "/topics", nil)
-	if err != nil {
-		return err
-	}
-
-	// Parse the given topics.
-	var topics []Topic
-	body, _ := ioutil.ReadAll(res.Body)
-	if err := json.Unmarshal(body, &topics); err != nil {
-		return fromError(err)
-	}
-
-	// And save the results.
-	save(topics)
-	return nil
-}
-
+// List simply shows the currently available topics.
 func List() error {
+	// Try to fetch them if no one else has done it. We can safely ignore the
+	// error since we can still cache it if it exists. Otherwise it's not such
+	// a pain to get an empty list on weird scenarios.
+	_ = fetch()
+
 	var topics []Topic
 	readTopics(&topics)
 	for _, v := range topics {
@@ -109,39 +61,7 @@ func List() error {
 	return nil
 }
 
-func Push() error {
-	var topics []Topic
-	readTopics(&topics)
-	pushTopics(topics)
-	return nil
-}
-
-func Status() error {
-	files := changedTopics()
-
-	if len(files) > 0 {
-		fmt.Printf("The following topics have changed since the last " +
-			"version:\n\n")
-		for _, f := range files {
-			fmt.Printf("\t%v\n", f)
-		}
-	} else {
-		fmt.Printf("There's nothing to be pushed.\n")
-	}
-	return nil
-}
-
-func topicResponse(t *Topic, res *http.Response) bool {
-	body, _ := ioutil.ReadAll(res.Body)
-	if err := json.Unmarshal(body, t); err != nil {
-		return false
-	}
-	if t.Error != "" {
-		return false
-	}
-	return true
-}
-
+// Create creates a new topic on the server.
 func Create(name string) error {
 	// Perform the HTTP request.
 	t := &Topic{Name: name}
@@ -152,13 +72,14 @@ func Create(name string) error {
 	}
 
 	// Parse the newly created topic and add it to the list.
-	if !topicResponse(t, res) {
-		return newError("could not create this topic")
+	if err = topicResponse(t, res); err != nil {
+		return NewError("could not create this topic")
 	}
 	addTopic(t)
 	return nil
 }
 
+// Delete deletes the specified topic from the server.
 func Delete(name string) error {
 	var topics, actual []Topic
 	var id string
@@ -167,14 +88,13 @@ func Delete(name string) error {
 	readTopics(&topics)
 	for _, v := range topics {
 		if v.Name == name {
-			id = v.Id
+			id = v.ID
 		} else {
 			actual = append(actual, v)
 		}
 	}
 	if id == "" {
-		unknownTopic(name)
-		os.Exit(1)
+		return unknownTopic(name)
 	}
 
 	// Perform the HTTP request.
@@ -185,26 +105,26 @@ func Delete(name string) error {
 	// On the system.
 	writeTopics(actual)
 	file := filepath.Join(home(), dirName, oldDir, name+".md")
-	os.RemoveAll(file)
+	_ = os.RemoveAll(file)
 	file = filepath.Join(home(), dirName, newDir, name+".md")
-	os.RemoveAll(file)
+	_ = os.RemoveAll(file)
 	return nil
 }
 
+// Rename changes the name of the given topic with the new one.
 func Rename(oldName, newName string) error {
 	var topics []Topic
-	var id, name string
+	var id string
 
 	readTopics(&topics)
 	for k, v := range topics {
 		if v.Name == oldName {
-			id = v.Id
+			id = v.ID
 			topics[k].Name = newName
 		}
 	}
 	if id == "" {
-		unknownTopic(name)
-		os.Exit(1)
+		return unknownTopic(oldName)
 	}
 
 	// Perform the HTTP Request.
@@ -214,15 +134,15 @@ func Rename(oldName, newName string) error {
 	if err != nil {
 		return err
 	}
-	if !topicResponse(t, res) {
-		return newError("could not rename this topic")
+	if err = topicResponse(t, res); err != nil {
+		return NewError("could not rename this topic")
 	}
 
 	// Update the system.
 	writeTopics(topics)
 	file := filepath.Join(home(), dirName, oldDir)
-	os.Rename(filepath.Join(file, oldName), filepath.Join(file, newName))
+	_ = os.Rename(filepath.Join(file, oldName), filepath.Join(file, newName))
 	file = filepath.Join(home(), dirName, newDir)
-	os.Rename(filepath.Join(file, oldName), filepath.Join(file, newName))
+	_ = os.Rename(filepath.Join(file, oldName), filepath.Join(file, newName))
 	return nil
 }

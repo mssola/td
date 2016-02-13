@@ -25,6 +25,7 @@ var (
 	config *configuration
 )
 
+// Initialize performs the needed initialization for the application.
 func Initialize() {
 	config = &configuration{logged: false}
 
@@ -50,10 +51,10 @@ func checkDir(dir string) error {
 	s := filepath.Join(home(), dirName, dir)
 	if _, err := os.Stat(s); err != nil {
 		if os.IsNotExist(err) {
-			os.MkdirAll(s, 0755)
+			_ = os.MkdirAll(s, 0755)
 			return nil
 		}
-		return newError("there's something wrong with the file system")
+		return NewError("there's something wrong with the file system")
 	}
 
 	// The directory exists, try to give it some cool permissions.
@@ -84,13 +85,26 @@ func configFile() (string, error) {
 	cfg := filepath.Join(home(), dirName, configName)
 	if _, err := os.Stat(cfg); os.IsNotExist(err) {
 		dir := filepath.Dir(cfg)
-		os.MkdirAll(dir, 0755)
+		_ = os.MkdirAll(dir, 0755)
 
 		// Create the config file.
 		file, _ := os.Create(cfg)
-		file.Close()
+		_ = file.Close()
 	} else if err != nil {
-		return "", newError("config file could not be read")
+		return "", NewError("config file could not be read")
 	}
 	return cfg, nil
+}
+
+func saveConfig() error {
+	body, _ := json.Marshal(config)
+	filePath, _ := configFile()
+
+	f, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	_, _ = f.Write(body)
+	_ = f.Close()
+	return nil
 }

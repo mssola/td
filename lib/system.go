@@ -48,14 +48,14 @@ const (
 func readTopics(topics *[]Topic) {
 	file := filepath.Join(home(), dirName, topicsName)
 	body, _ := ioutil.ReadFile(file)
-	json.Unmarshal(body, topics)
+	_ = json.Unmarshal(body, topics)
 }
 
 // Save the given topics into the list of local topics. Note that this function
 // effectively replaces the previous list.
 func writeTopics(topics []Topic) {
 	// Clean it up, we don't want to store the contents.
-	for k, _ := range topics {
+	for k := range topics {
 		topics[k].Contents = ""
 		topics[k].Markdown = ""
 	}
@@ -64,8 +64,8 @@ func writeTopics(topics []Topic) {
 	// Write the JSON.
 	file := filepath.Join(home(), dirName, topicsName)
 	f, _ := os.Create(file)
-	f.Write(body)
-	f.Close()
+	_, _ = f.Write(body)
+	_ = f.Close()
 }
 
 // Add the given topic to the list of local topics.
@@ -83,7 +83,6 @@ func addTopic(topic *Topic) {
 }
 
 // Returns a list of all the topics that have changed since the last version.
-// TODO: test me!
 func changedTopics() []Topic {
 	var topics, changed []Topic
 	readTopics(&topics)
@@ -121,8 +120,8 @@ func changedTopics() []Topic {
 func save(topics []Topic) {
 	// First of all, reset the temporary directory.
 	dir := filepath.Join(home(), dirName, tmpDir)
-	os.RemoveAll(dir)
-	os.MkdirAll(dir, 0755)
+	_ = os.RemoveAll(dir)
+	_ = os.MkdirAll(dir, 0755)
 
 	// Save all the topics to this temporary directory.
 	for _, t := range topics {
@@ -131,9 +130,9 @@ func save(topics []Topic) {
 
 	// Update the old and new directories
 	adir := filepath.Join(home(), dirName, oldDir)
-	copyDir(dir, adir)
+	_ = copyDir(dir, adir)
 	adir = filepath.Join(home(), dirName, newDir)
-	copyDir(dir, adir)
+	_ = copyDir(dir, adir)
 
 	// And finally, write the JSON file.
 	writeTopics(topics)
@@ -145,8 +144,8 @@ func save(topics []Topic) {
 func write(topic *Topic, path string) {
 	path = filepath.Join(path, topic.Name+".md")
 	f, _ := os.Create(path)
-	f.WriteString(topic.Contents)
-	f.Close()
+	_, _ = f.WriteString(topic.Contents)
+	_ = f.Close()
 }
 
 // Copy all the files from the "new" directory to the "old" directory. This is
@@ -163,7 +162,7 @@ func update(success, fails []string) {
 	for _, v := range success {
 		src := filepath.Join(srcDir, v+".md")
 		dst := filepath.Join(dstDir, v+".md")
-		copyFile(src, dst)
+		_ = copyFile(src, dst)
 	}
 
 	// List failures.

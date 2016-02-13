@@ -7,115 +7,27 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
+	"unicode"
+	"unicode/utf8"
 
-	"github.com/mssola/dym"
+	"github.com/codegangsta/cli"
 	"github.com/mssola/td/lib"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
-const (
-	// The major element for the version number.
-	major = 0
-
-	// The minor element for the version number.
-	minor = 1
-
-	// The patch level for the version number.
-	patch = 0
-)
-
-// Show the usage string. The parameter will be used as the exit status code.
-func usage() {
-	msg := []string{
-		"usage: td [--version | --help | <command> [args]]",
-		"",
-		"The available commands are:",
-		"  create\tCreate a new topic. It expects one extra argument: the name.",
-		"  delete\tDelete a topic. It expects one extra argument: the name.",
-		"  fetch \tFetch all the info from the server.",
-		"  list  \tList the available topics.",
-		"  login \tLog the current user.",
-		"  logout\tDelete the current session.",
-		"  push  \tPush all the local info to the server.",
-		"  rename\tRename a topic. You have to pass the old name and " +
-			"the new one.",
-		"  status\tList the local topics that have changed.",
-	}
-	fmt.Printf("%v\n", strings.Join(msg, "\n"))
-	os.Exit(0)
+// TODO: bump version
+func version() string {
+	const (
+		major = 0
+		minor = 99
+		patch = 0
+	)
+	return fmt.Sprintf("%d.%d.%d", major, minor, patch)
 }
 
-// The user passed a wrong number of arguments.
-func wrongArguments() {
-	var n, msg string
-
-	switch os.Args[1] {
-	case "create":
-		fallthrough
-	case "delete":
-		n = "1 argument"
-	case "rename":
-		n = "2 arguments"
-	}
-	msg = fmt.Sprintf("the '%v' command requires %v, %v given",
-		os.Args[1], n, len(os.Args)-2)
-	cmd(lib.See(msg, "--help"))
-}
-
-// Show a rather verbose help message, with command suggestions.
-func verboseHelp(logged bool) {
-	// No command given, just get out of here.
-	if len(os.Args) == 1 {
-		cmd(lib.See("you are not logged in", "login"))
-	}
-
-	e := fmt.Sprintf("'%v' is not a td command", os.Args[1])
-	msg := lib.See(e, "--help")
-
-	// Get the commands that are close to the one given by the user.
-	d := []string{"login", "--help", "--version", "fetch", "list",
-		"logout", "push", "status", "create", "delete", "rename"}
-	similars := dym.Similar(d, os.Args[1])
-
-	if len(similars) == 0 {
-		fmt.Printf("%v", msg)
-	} else {
-		str := fmt.Sprintf("%v\nDid you mean one of these?\n", msg)
-		for _, v := range similars {
-			// Check for an exact match for the given parameter. If there is a
-			// match, then it means that the error to be shown is that the user
-			// wasn't logged in.
-			if v == os.Args[1] {
-				if logged {
-					wrongArguments()
-				} else {
-					cmd(lib.See("you are not logged in", "login"))
-				}
-			}
-
-			str += fmt.Sprintf("\t%v\n", v)
-		}
-		fmt.Print(str)
-	}
-
-	// If we reach this point, then there was no exact match, so it's safe to
-	// just quit the program.
-	os.Exit(1)
-}
-
-// Show the version of this program.
-func version() {
-	if patch == 0 {
-		fmt.Printf("td version %v.%v\n", major, minor)
-	} else {
-		fmt.Printf("td version %v.%v.%v\n", major, minor, patch)
-	}
-	os.Exit(0)
-}
-
-// All the commands return an error value. This function evaluates this error
-// and prints an error message if it's required.
-func cmd(err error) {
+// errAndExit prints the given error if it was not nil and exits with the
+// proper exit code.
+func errAndExit(err error) {
 	if err == nil {
 		os.Exit(0)
 	}
@@ -123,56 +35,175 @@ func cmd(err error) {
 	os.Exit(1)
 }
 
+// flagOrPrompt tries to fetch the value for the requested flag from the given
+// CLI context. If that is not possible, then it prompts the user asking for
+// the information. If the `secure` parameter is set to true, then the password
+// won't be shown.
+func flagOrPrompt(ctx *cli.Context, name string, secure bool) (string, error) {
+	// If the flag already provides the value, just return it.
+	if val := ctx.String(name); val != "" {
+		return val, nil
+	}
+
+	// Show the prompt by uppercasing the first letter of the given name.
+	r, n := utf8.DecodeRuneInString(name)
+	fmt.Print(string(unicode.ToUpper(r)) + name[n:] + ": ")
+
+	// And now get the value from the terminal.
+	if secure {
+		b, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+		if err != nil {
+			return "", err
+		}
+		fmt.Println()
+		return string(b), nil
+	}
+	var value string
+	fmt.Scanf("%s", &value)
+	return value, nil
+}
+
+// readLoginDetails reads the flags passed to the `login` command in order to
+// fetch details needed for the `lib.Login` function. If a flag is not passed,
+// then the user will be prompted to give the information manually.
+func readLoginDetails(ctx *cli.Context) (string, string, string, error) {
+	server, err := flagOrPrompt(ctx, "server", false)
+	if err != nil {
+		return "", "", "", err
+	}
+	username, err := flagOrPrompt(ctx, "username", false)
+	if err != nil {
+		return "", "", "", err
+	}
+	password, err := flagOrPrompt(ctx, "password", true)
+	if err != nil {
+		return "", "", "", err
+	}
+	return server, username, password, nil
+}
+
+// loggedCommand wraps the given function by making sure that the current user
+// is logged in. If this is not the case, it shows an error message and exits.
+func loggedCommand(f func(*cli.Context)) func(*cli.Context) {
+	return func(ctx *cli.Context) {
+		if !lib.LoggedIn() {
+			errAndExit(lib.See("you are not logged in", "login"))
+		}
+		f(ctx)
+	}
+}
+
+// require enforces the given cli context to have the expected number of
+// arguments.
+func require(ctx *cli.Context, expected int) {
+	if len(ctx.Args()) != expected {
+		msg := fmt.Sprintf("the '%s' command requires %d arguments, %d given",
+			ctx.Command.Name, expected, len(ctx.Args()))
+		fmt.Println(lib.NewError(msg))
+		cli.ShowAppHelp(ctx)
+	}
+}
+
 func main() {
-	largs := len(os.Args)
 	lib.Initialize()
 
-	// All the actions that a non-logged in user can perform.
-	if largs == 2 {
-		switch os.Args[1] {
-		case "login":
-			cmd(lib.Login())
-		case "--help":
-			usage()
-		case "--version":
-			version()
-		}
+	app := cli.NewApp()
+	app.Name = "td"
+	app.Usage = "A CLI tool for a 'todo' server."
+	app.Version = version()
+
+	app.CommandNotFound = func(context *cli.Context, cmd string) {
+		fmt.Printf("Incorrect usage: command '%v' does not exist.\n\n", cmd)
+		cli.ShowAppHelp(context)
 	}
 
-	// All the other commands require the user to be logged in.
-	if !lib.LoggedIn() {
-		verboseHelp(false)
+	app.Action = loggedCommand(func(ctx *cli.Context) {
+		errAndExit(lib.Edit())
+	})
+
+	app.Commands = []cli.Command{
+		{
+			Name: "create",
+			Usage: "Create a new topic. " +
+				"It requires one argument, which is the name of the new topic.",
+			Action: loggedCommand(func(ctx *cli.Context) {
+				require(ctx, 1)
+				errAndExit(lib.Create(ctx.Args()[1]))
+			}),
+		},
+		{
+			Name:  "delete",
+			Usage: "Delete a topic. It expects one extra argument: the name.",
+			Action: loggedCommand(func(ctx *cli.Context) {
+				require(ctx, 1)
+				errAndExit(lib.Delete(ctx.Args()[1]))
+			}),
+		},
+		{
+			Name:   "list",
+			Usage:  "List the available topics.",
+			Action: loggedCommand(func(ctx *cli.Context) { errAndExit(lib.List()) }),
+		},
+		{
+			Name:  "login",
+			Usage: "Log the current user.",
+			Action: func(ctx *cli.Context) {
+				if lib.LoggedIn() {
+					fmt.Println("You are already logged in. Doing nothing...")
+					os.Exit(0)
+				}
+
+				server, name, password, err := readLoginDetails(ctx)
+				if err != nil {
+					errAndExit(err)
+				}
+				if server == "" || name == "" || password == "" {
+					errAndExit(lib.NewError("missing information"))
+				}
+				errAndExit(lib.Login(server, name, password))
+			},
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "s, server",
+					Usage: "The URL where the 'todo' application is hosted.",
+				},
+				cli.StringFlag{
+					Name:  "u, username",
+					Usage: "Username.",
+				},
+				cli.StringFlag{
+					Name:  "p, password",
+					Usage: "Password.",
+				},
+			},
+		},
+		{
+			Name:   "logout",
+			Usage:  "Delete the current session.",
+			Action: loggedCommand(func(ctx *cli.Context) { errAndExit(lib.Logout()) }),
+		},
+		{
+			Name:  "rename",
+			Usage: "Rename a topic. You have to pass the old name and the new one.",
+			Action: loggedCommand(func(ctx *cli.Context) {
+				require(ctx, 2)
+				errAndExit(lib.Rename(ctx.Args()[1], ctx.Args()[2]))
+			}),
+		},
 	}
 
-	// Let's execute the given command now.
-	if largs == 1 {
-		cmd(lib.Edit())
-	} else if largs == 2 {
-		switch os.Args[1] {
-		case "fetch":
-			cmd(lib.Fetch())
-		case "list":
-			cmd(lib.List())
-		case "logout":
-			cmd(lib.Logout())
-		case "push":
-			cmd(lib.Push())
-		case "status":
-			cmd(lib.Status())
-		default:
-			verboseHelp(true)
-		}
-	} else if largs == 3 {
-		if os.Args[1] == "create" {
-			cmd(lib.Create(os.Args[2]))
-		} else if os.Args[1] == "delete" {
-			cmd(lib.Delete(os.Args[2]))
-		} else {
-			verboseHelp(true)
-		}
-	} else if largs == 4 && os.Args[1] == "rename" {
-		cmd(lib.Rename(os.Args[2], os.Args[3]))
-	} else {
-		verboseHelp(true)
+	app.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:        "insecure",
+			Usage:       "Allow the usage of insecure connections.",
+			Destination: &lib.Insecure,
+		},
+		cli.BoolTFlag{
+			Name:        "tlsverify",
+			Usage:       "Verify the remote server. Ignored if --insecure is set to true.",
+			Destination: &lib.TLSVerify,
+		},
 	}
+
+	app.RunAndExitOnError()
 }

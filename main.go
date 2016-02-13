@@ -101,6 +101,7 @@ func require(ctx *cli.Context, expected int) {
 			ctx.Command.Name, expected, len(ctx.Args()))
 		fmt.Println(lib.NewError(msg))
 		cli.ShowAppHelp(ctx)
+		os.Exit(1)
 	}
 }
 
@@ -128,7 +129,7 @@ func main() {
 				"It requires one argument, which is the name of the new topic.",
 			Action: loggedCommand(func(ctx *cli.Context) {
 				require(ctx, 1)
-				errAndExit(lib.Create(ctx.Args()[1]))
+				errAndExit(lib.Create(ctx.Args()[0]))
 			}),
 		},
 		{
@@ -136,7 +137,7 @@ func main() {
 			Usage: "Delete a topic. It expects one extra argument: the name.",
 			Action: loggedCommand(func(ctx *cli.Context) {
 				require(ctx, 1)
-				errAndExit(lib.Delete(ctx.Args()[1]))
+				errAndExit(lib.Delete(ctx.Args()[0]))
 			}),
 		},
 		{
@@ -187,7 +188,7 @@ func main() {
 			Usage: "Rename a topic. You have to pass the old name and the new one.",
 			Action: loggedCommand(func(ctx *cli.Context) {
 				require(ctx, 2)
-				errAndExit(lib.Rename(ctx.Args()[1], ctx.Args()[2]))
+				errAndExit(lib.Rename(ctx.Args()[0], ctx.Args()[1]))
 			}),
 		},
 	}

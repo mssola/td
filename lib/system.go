@@ -70,9 +70,11 @@ func writeTopics(topics []Topic) {
 
 // Add the given topic to the list of local topics.
 func addTopic(topic *Topic) {
+	var topics []Topic
+
 	// Add the topic to the JSON file.
-	topics := []Topic{*topic}
 	readTopics(&topics)
+	topics = append(topics, *topic)
 	writeTopics(topics)
 
 	// And create the files for this new topic.

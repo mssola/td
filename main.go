@@ -17,11 +17,10 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-// TODO: bump version
 func version() string {
 	const (
 		major = 0
-		minor = 99
+		minor = 1
 		patch = 0
 	)
 	return fmt.Sprintf("%d.%d.%d", major, minor, patch)

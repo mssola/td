@@ -1,0 +1,27 @@
+{
+	"ImportPath": "github.com/mssola/td",
+	"GoVersion": "1.5",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-235-gbc465becccd1",
+			"Rev": "bc465becccd1d527002fda095fc3c19d9c115029"
+		},
+		{
+			"ImportPath": "github.com/mssola/capture",
+			"Rev": "9e5615ff6effb8da9202768b3e95c3e246823315"
+		},
+		{
+			"ImportPath": "github.com/mssola/colors",
+			"Rev": "56e780667097bf9a593a7cc8859d08b9436229c1"
+		},
+		{
+			"ImportPath": "github.com/mssola/dym",
+			"Comment": "v0.2.1-4-gd6caa5965ac3",
+			"Rev": "d6caa5965ac3839b7ca21a0c1c4bc754049a6605"
+		}
+	]
+}

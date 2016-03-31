@@ -14,7 +14,6 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/mssola/td/lib"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 func version() string {
@@ -52,7 +51,7 @@ func flagOrPrompt(ctx *cli.Context, name string, secure bool) (string, error) {
 
 	// And now get the value from the terminal.
 	if secure {
-		b, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+		b, err := readPassword(int(os.Stdin.Fd()))
 		if err != nil {
 			return "", err
 		}

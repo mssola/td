@@ -1,18 +1,13 @@
 language: go
 go:
-    - 1.5
+    - 1.6
     - tip
 matrix:
     allow_failures:
         - go: tip
-
-env:
-  - GO15VENDOREXPERIMENT=1
-
+install:
+  - go get -u github.com/golang/lint/golint
 before_script:
-  - go get golang.org/x/tools/cmd/cover
-  - go get golang.org/x/tools/cmd/vet
-  - go get github.com/golang/lint/golint
   - go get github.com/kisielk/errcheck
 
 script:

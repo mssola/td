@@ -19,7 +19,7 @@ import (
 func version() string {
 	const (
 		major = 0
-		minor = 1
+		minor = 2
 		patch = 0
 	)
 	return fmt.Sprintf("%d.%d.%d", major, minor, patch)

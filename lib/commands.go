@@ -31,7 +31,7 @@ var editCommand = func() error {
 func Edit() error {
 	// Fetch the topics from the server.
 	if err := fetch(); err != nil {
-		return err
+		return fromError(err)
 	}
 
 	// Open up the editor.

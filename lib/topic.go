@@ -46,11 +46,12 @@ func unknownTopic(name string) error {
 		return NewError(msg)
 	}
 
-	msg += "\n\nDid you mean one of these?\n"
+	msg = NewError(msg).String()
+	msg += "\nDid you mean one of these?\n"
 	for _, v := range similars {
 		msg += "\t" + v + "\n"
 	}
-	return NewError(msg)
+	return errors.New(msg)
 }
 
 // topicResponse parses the given response and fill the given topic with the

@@ -64,7 +64,8 @@ func Login(server, username, password string) error {
 	// Save the configuration.
 	fmt.Printf("\nLogging in... ")
 	if err := saveConfig(); err != nil {
-		return err
+		fmt.Println("")
+		return fromError(err)
 	}
 
 	// And fetch the topics.

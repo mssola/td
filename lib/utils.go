@@ -17,7 +17,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -172,18 +171,9 @@ func getResponse(method, url string, body io.Reader) (*http.Response, error) {
 		return nil, NewError("timed out! Try it again in another time")
 	}
 
-	errMsg := err.Error()
-
-	// Known limitation in Go 1.5: the *http.httpError type does not implement
-	// the net.Error type, so the previous if fails in Go 1.5 but not
-	// afterward.
-	if strings.Contains(errMsg, "Client.Timeout") {
-		return nil, NewError("timed out! Try it again in another time")
-	}
-
 	// Beautify the given error: only return the actual message.
 	re, _ := regexp.Compile(`:\s+(.+)$`)
-	if e := re.FindSubmatch([]byte(errMsg)); len(e) == 2 {
+	if e := re.FindSubmatch([]byte(err.Error())); len(e) == 2 {
 		return nil, NewError(string(e[1]))
 	}
 	return nil, fromError(err)

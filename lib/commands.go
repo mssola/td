@@ -75,7 +75,7 @@ func Create(name string) error {
 
 	// Parse the newly created topic and add it to the list.
 	if err = topicResponse(t, res); err != nil {
-		return NewError("could not create this topic")
+		return NewError("could not create this topic: " + err.Error())
 	}
 	addTopic(t)
 	return nil
@@ -137,7 +137,7 @@ func Rename(oldName, newName string) error {
 		return err
 	}
 	if err = topicResponse(t, res); err != nil {
-		return NewError("could not rename this topic")
+		return NewError("could not rename this topic: " + err.Error())
 	}
 
 	// Update the system.

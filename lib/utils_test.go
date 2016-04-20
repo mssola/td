@@ -12,9 +12,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mssola/capture"
 )
 
 func TestHome(t *testing.T) {
@@ -55,6 +58,62 @@ func TestEditor(t *testing.T) {
 	errCheck(t, os.Setenv("EDITOR", ""))
 	if e := editor(); e != defaultEditor {
 		t.Fatalf("Expected '%v', Got '%v'", defaultEditor, e)
+	}
+}
+
+func TestEditorArguments(t *testing.T) {
+	defer func() { File = "" }()
+
+	File = ""
+	args := editorArguments()
+	if len(args) != 0 {
+		t.Fatalf("Expecting just 1 argument, got %v", len(args))
+	}
+
+	errCheck(t, os.Setenv("EDITOR", "emacs"))
+	args = editorArguments()
+	if len(args) != 0 {
+		t.Fatalf("Expecting just 1 argument, got %v", len(args))
+	}
+
+	File = "something"
+	res := capture.All(func() { args = editorArguments() })
+	if len(args) != 0 {
+		t.Fatalf("Expecting just 1 argument, got %v", len(args))
+	}
+	str := "the -f/--file flag does not work if it's not Vim"
+	if !strings.Contains(string(res.Stdout), str) {
+		t.Fatalf("Expecting '%s'; got: %s", str, res.Stdout)
+	}
+
+	errCheck(t, os.Setenv("EDITOR", "vim"))
+	res = capture.All(func() { args = editorArguments() })
+	if len(args) != 0 {
+		t.Fatalf("Expecting just 1 argument, got %v", len(args))
+	}
+	str = "given file 'something' does not exist"
+	if !strings.Contains(string(res.Stdout), str) {
+		t.Fatalf("Expecting '%s'; got: %s", str, res.Stdout)
+	}
+
+	p, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("could not get working directory")
+	}
+	if strings.HasSuffix(p, "lib") {
+		p = filepath.Dir(p)
+	}
+	File = filepath.Join(p, "README.md")
+
+	args = editorArguments()
+	if len(args) != 2 {
+		t.Fatalf("Expecting 2 argument, got %v", len(args))
+	}
+	if args[0] != "-s" {
+		t.Fatalf("Expecting '-s' argument, got %v", args[0])
+	}
+	if args[1] != File {
+		t.Fatalf("Expecting '%v', argument, got %v", File, args[0])
 	}
 }
 

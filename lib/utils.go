@@ -36,6 +36,10 @@ var (
 	// TLSVerify sets whether certificates have to be validated. Defaults to
 	// true. Ignored if Insecure is true.
 	TLSVerify = true
+
+	// File specifies which file the `edit` command should pick in order to
+	// execute commands in the editor during initialization.
+	File = ""
 )
 
 // Returns the value of the current home. This value is fetched from the $TD
@@ -61,6 +65,30 @@ func editor() string {
 		return defaultEditor
 	}
 	return value
+}
+
+// Returns the arguments that have to be passed to the editor.
+func editorArguments() []string {
+	if File == "" {
+		return []string{}
+	}
+
+	if editor() != "vim" {
+		if File != "" {
+			warning("the -f/--file flag does not work if it's not Vim.", "")
+		}
+		return []string{}
+	}
+
+	if _, err := os.Stat(File); os.IsNotExist(err) {
+		warning("given file '%s' does not exist.", File)
+		return []string{}
+	}
+	abs, err := filepath.Abs(File)
+	if err != nil {
+		abs = File
+	}
+	return []string{"-s", abs}
 }
 
 // Copy a file from a source path to a destination path. This function assumes

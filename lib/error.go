@@ -57,3 +57,18 @@ func (e *Error) String() string {
 func (e *Error) Error() string {
 	return e.String()
 }
+
+// Print a warning to stdout.
+func warning(str, extra string) {
+	red := &colors.Color{
+		Foreground: colors.Red,
+		Background: colors.Saved,
+		Mode:       colors.Bold,
+	}
+	str = "%v: " + str + "\n"
+	if extra == "" {
+		fmt.Printf(str, red.Get("warning"))
+	} else {
+		fmt.Printf(str, red.Get("warning"), extra)
+	}
+}

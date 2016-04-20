@@ -17,7 +17,14 @@ import (
 
 // Done this way to test it.
 var editCommand = func() error {
-	cmd := exec.Command(editor())
+	var cmd *exec.Cmd
+
+	if args := editorArguments(); len(args) == 0 {
+		cmd = exec.Command(editor())
+	} else {
+		cmd = exec.Command(editor(), args...)
+	}
+
 	cmd.Dir = filepath.Join(home(), dirName, newDir)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

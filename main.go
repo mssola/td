@@ -204,6 +204,12 @@ func main() {
 			Usage:       "Verify the remote server. Ignored if --insecure is set to true.",
 			Destination: &lib.TLSVerify,
 		},
+		cli.StringFlag{
+			Name: "file, f",
+			Usage: "Specify a file containing commands to be executed when opening the editor. " +
+				"This only applies to the edit command and Vim",
+			Destination: &lib.File,
+		},
 	}
 
 	app.RunAndExitOnError()

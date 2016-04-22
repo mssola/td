@@ -50,7 +50,7 @@ _td()
     # Complete a command.
     if [ $c -eq $COMP_CWORD -a -z "$command" ]; then
         case "${COMP_WORDS[COMP_CWORD]}" in
-        -*|--*) __tdcomp "--help --version" ;;
+        -*|--*) __tdcomp "--help --version --insecure --tlsverify --file" ;;
         *)      __tdcomp "$cmds" ;;
         esac
         return

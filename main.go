@@ -124,9 +124,11 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
-			Name: "create",
-			Usage: "Create a new topic. " +
-				"It requires one argument, which is the name of the new topic.",
+			Name:  "create",
+			Usage: "Create a new topic.",
+			ArgsUsage: `<topic>
+
+Where <topic> is the name of the topic to be created.`,
 			Action: loggedCommand(func(ctx *cli.Context) {
 				require(ctx, 1)
 				errAndExit(lib.Create(ctx.Args()[0]))
@@ -134,20 +136,25 @@ func main() {
 		},
 		{
 			Name:  "delete",
-			Usage: "Delete a topic. It expects one extra argument: the name.",
+			Usage: "Delete a topic.",
+			ArgsUsage: `<topic>
+
+Where <topic> is the name of the topic to be deleted.`,
 			Action: loggedCommand(func(ctx *cli.Context) {
 				require(ctx, 1)
 				errAndExit(lib.Delete(ctx.Args()[0]))
 			}),
 		},
 		{
-			Name:   "list",
-			Usage:  "List the available topics.",
-			Action: loggedCommand(func(ctx *cli.Context) { errAndExit(lib.List()) }),
+			Name:      "list",
+			Usage:     "List the available topics.",
+			ArgsUsage: " ",
+			Action:    loggedCommand(func(ctx *cli.Context) { errAndExit(lib.List()) }),
 		},
 		{
-			Name:  "login",
-			Usage: "Log the current user.",
+			Name:      "login",
+			Usage:     "Log the current user.",
+			ArgsUsage: " ",
 			Action: func(ctx *cli.Context) {
 				if lib.LoggedIn() {
 					fmt.Println("You are already logged in. Doing nothing...")
@@ -179,13 +186,17 @@ func main() {
 			},
 		},
 		{
-			Name:   "logout",
-			Usage:  "Delete the current session.",
-			Action: loggedCommand(func(ctx *cli.Context) { errAndExit(lib.Logout()) }),
+			Name:      "logout",
+			Usage:     "Delete the current session.",
+			ArgsUsage: " ",
+			Action:    loggedCommand(func(ctx *cli.Context) { errAndExit(lib.Logout()) }),
 		},
 		{
 			Name:  "rename",
-			Usage: "Rename a topic. You have to pass the old name and the new one.",
+			Usage: "Rename a topic.",
+			ArgsUsage: `<name> <new-name>
+
+Where <name> is the old name and <new-name> the one to be used from now on.`,
 			Action: loggedCommand(func(ctx *cli.Context) {
 				require(ctx, 2)
 				errAndExit(lib.Rename(ctx.Args()[0], ctx.Args()[1]))

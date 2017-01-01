@@ -47,7 +47,7 @@ wherever you want and source it in your `.bashrc` file.
 
 ## License
 
-Copyright &copy; 2014-2016 Miquel Sabaté Solà
+Copyright &copy; 2014-2017 Miquel Sabaté Solà
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
